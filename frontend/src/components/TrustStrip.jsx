@@ -6,8 +6,8 @@ const itemVariant = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.40,
-      ease: "easeOut",
+      duration: 0.4,
+      ease: "easeInOut",
     },
   },
 };
