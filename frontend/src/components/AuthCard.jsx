@@ -1,32 +1,63 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast"; // 1. Import toast
 
 export default function AuthCard({ isLogin, setIsLogin }) {
   const { login, signup, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+
+  // Helper to keep styling consistent with your theme
+  const themeToast = (message, type = "error") => {
+    toast[type](message, {
+      style: {
+        border: "1px solid #d8c6b2",
+        padding: "16px",
+        color: "#5c442a",
+        background: "#fffaf3", // Matches your card bg
+      },
+      iconTheme: {
+        primary: "#b38b59", // Matches your button color
+        secondary: "#fffaf3",
+      },
+    });
+  };
+
   const handleSubmit = async () => {
     if (!email || !password) {
-      alert("Please fill all fields");
+      themeToast("Please fill all fields"); // Replacement for alert
       return;
     }
+
     if (isLogin) {
       const ok = await login(email, password);
       if (ok) {
+        toast.success("Welcome back!", { style: { background: "#fffaf3" } });
         navigate("/home");
+      } else {
+        themeToast("Login failed. Check your credentials.");
       }
     } else {
       const ok = await signup(email, password);
-
       if (ok) {
+        toast.success("Account created! Please login.", {
+          style: { background: "#fffaf3" },
+        });
         setIsLogin(true);
+      } else {
+        themeToast("Signup failed. Try again.");
       }
     }
   };
+
   return (
     <div className="w-full max-w-xl bg-[#fffaf3] rounded-2xl float-card p-10">
+      {/* Add Toaster here or in your App.js root */}
+      <Toaster position="top-center" reverseOrder={false} />
+
+      {/* ... rest of your existing JSX ... */}
       <div className="flex mb-8 bg-[#ead9c4] rounded-lg overflow-hidden">
         <button
           className={`w-1/2 py-3 font-medium ${
@@ -45,6 +76,7 @@ export default function AuthCard({ isLogin, setIsLogin }) {
           Sign Up
         </button>
       </div>
+      {/* ... rest of your inputs ... */}
       <label className="block font-medium mb-2">Email Address</label>
       <input
         type="email"
