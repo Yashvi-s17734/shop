@@ -1,0 +1,45 @@
+@keyframes templeGlow {
+  0% {
+    filter: brightness(0.5) saturate(0.99) sepia(0.02);
+  }
+  30% {
+    filter: brightness(0.5) saturate(0.99) sepia(0.02);
+  }
+
+  45% {
+    filter: brightness(1.04) saturate(1.06) sepia(0.05);
+  }
+
+  55% {
+    filter: brightness(1.04) saturate(1.06) sepia(0.05);
+  }
+  80% {
+    filter: brightness(1.04) saturate(1.06) sepia(0.05);
+  }
+  100% {
+    filter: brightness(0.5) saturate(0.99) sepia(0.02);
+  }
+}
+
+.temple-glow {
+  animation: templeGlow 12s ease-in-out infinite;
+}
+
+@keyframes floatCloth {
+  0% {
+    transform: translateY(0);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  }
+  50% {
+    transform: translateY(-5px);
+    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.18);
+  }
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.float-card {
+  animation: floatCloth 9s ease-in-out infinite;
+}
