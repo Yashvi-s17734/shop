@@ -1,7 +1,7 @@
 /* Card */
 .auth-card {
   width: 100%;
-  max-width: 48rem; /* max-w-xl */
+  max-width: 48rem;
   background: #fffaf3;
   border-radius: 1rem;
   padding: 2.5rem;
@@ -20,8 +20,8 @@
   width: 50%;
   padding: 0.75rem 0;
   font-weight: 500;
-  background: transparent;
   border: none;
+  background: transparent;
   cursor: pointer;
 }
 
@@ -30,18 +30,17 @@
   color: white;
 }
 
-/* Inputs */
+/* Labels & Inputs */
 .auth-label {
-  display: block;
   font-weight: 500;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 
 .auth-input {
   width: 100%;
   height: 3rem;
   padding: 0 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   border-radius: 0.5rem;
   border: 1px solid #d8c6b2;
   outline: none;
@@ -51,18 +50,34 @@
   box-shadow: 0 0 0 2px rgba(179, 139, 89, 0.4);
 }
 
+/* Password + forgot row */
+.password-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px; /* pulls it closer to input */
+  margin-bottom: 14px;
+}
+
+.forgot-link {
+  font-size: 0.85rem;
+  color: #b38b59;
+  cursor: pointer;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
 /* Button */
 .auth-btn {
   width: 100%;
   height: 3rem;
-  margin-top: 1.5rem;
+  margin-top: 0.75rem;
   background: #b38b59;
   color: white;
   border-radius: 0.5rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .auth-btn:active {
@@ -70,11 +85,10 @@
   background: #9c7444;
 }
 
-/* Google button */
+/* Google */
 .google-btn {
-  width: 100%;
-  height: 3rem;
   margin-top: 1rem;
+  height: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,45 +98,34 @@
   background: white;
   color: #5c442a;
   font-weight: 500;
-  cursor: pointer;
 }
 
-.google-btn:hover {
-  background: #fffaf3;
+.google-btn img {
+  width: 20px;
 }
 
 /* Footer */
 .auth-footer {
   text-align: center;
   margin-top: 1.5rem;
-  font-size: 1.125rem;
 }
 
 .auth-link {
   color: #b38b59;
   cursor: pointer;
 }
-/* =========================
-   RESPONSIVE STYLES
-========================= */
 
-/* Tablets (≤ 768px) */
+/* RESPONSIVE */
 @media (max-width: 768px) {
   .auth-card {
-    padding: 2rem;
     max-width: 90%;
-  }
-
-  .auth-footer {
-    font-size: 1rem;
+    padding: 2rem;
   }
 }
 
-/* Mobile (≤ 480px) */
 @media (max-width: 480px) {
   .auth-card {
     padding: 1.5rem;
-    border-radius: 0.75rem;
   }
 
   .auth-tabs {
@@ -131,43 +134,5 @@
 
   .auth-tab {
     width: 100%;
-    padding: 0.65rem 0;
-    font-size: 0.95rem;
-  }
-
-  .auth-label {
-    font-size: 0.9rem;
-  }
-
-  .auth-input {
-    height: 2.75rem;
-    font-size: 0.9rem;
-  }
-
-  .auth-btn,
-  .google-btn {
-    height: 2.75rem;
-    font-size: 0.9rem;
-  }
-
-  .google-btn img {
-    width: 18px;
-    height: 18px;
-  }
-
-  .auth-footer {
-    font-size: 0.95rem;
-  }
-}
-
-/* Small phones (≤ 360px) */
-@media (max-width: 360px) {
-  .auth-card {
-    padding: 1.25rem;
-  }
-
-  .auth-btn,
-  .google-btn {
-    font-size: 0.85rem;
   }
 }

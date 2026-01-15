@@ -27,13 +27,16 @@ export default function AuthCard({ isLogin, setIsLogin }) {
       else toast.error("Login failed");
     } else {
       const ok = await signup(identifier, email, password);
-      if (ok) setIsLogin(true);
-      else toast.error("Signup failed");
+      if (ok) {
+        toast.success("Account created! Please login.");
+        setIsLogin(true);
+      } else toast.error("Signup failed");
     }
   };
 
   return (
     <div className="auth-card">
+      {/* Tabs */}
       <div className="auth-tabs">
         <button
           className={`auth-tab ${isLogin ? "active" : ""}`}
@@ -49,18 +52,54 @@ export default function AuthCard({ isLogin, setIsLogin }) {
         </button>
       </div>
 
-      <label className="auth-label">
-        {isLogin ? "Email or Username" : "Username"}
-      </label>
-      <input
-        className="auth-input"
-        value={identifier}
-        onChange={(e) => setIdentifier(e.target.value)}
-        placeholder={isLogin ? "Email or Username" : "Username"}
-      />
+      {/* LOGIN */}
+      {isLogin && (
+        <>
+          <label className="auth-label">Email or Username</label>
+          <input
+            placeholder="Email or Username"
+            className="auth-input"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+          />
+          <label className="auth-label">Password</label>
+          <input
+            type="password"
+            placeholder="Password"
+            className="auth-input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <div className="password-row">
+            <span
+              className="forgot-link"
+              onClick={() => navigate("/forgot-password")}
+            >
+              Forgot password?
+            </span>
+          </div>
 
+          <button
+            className="auth-btn"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? "Please wait..." : "Login"}
+          </button>
+        </>
+      )}
+
+      {/* SIGNUP */}
       {!isLogin && (
         <>
+          <label className="auth-label">Email or Username</label>
+          <input
+            placeholder="Username"
+            className="auth-input"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+          />
+
           <label className="auth-label">Email Address</label>
           <input
             placeholder="Email"
@@ -68,32 +107,27 @@ export default function AuthCard({ isLogin, setIsLogin }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
+
+          <label className="auth-label">Password</label>
+          <input
+            placeholder="Password"
+            type="password"
+            className="auth-input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <button
+            className="auth-btn"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? "Please wait..." : "Create Account"}
+          </button>
         </>
       )}
 
-      <label className="auth-label">Password</label>
-      <input
-        type="password"
-        placeholder="Password"
-        className="auth-input"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      {isLogin && (
-        <div className="forgot-wrapper">
-          <span
-            className="forgot-link"
-            onClick={() => navigate("/forgot-password")}
-          >
-            Forgot password?
-          </span>
-        </div>
-      )}
-
-      <button className="auth-btn" onClick={handleSubmit} disabled={loading}>
-        {loading ? "Please wait..." : isLogin ? "Login" : "Create Account"}
-      </button>
-
+      {/* Google */}
       <a
         href={`${import.meta.env.VITE_API_URL}/api/auth/google`}
         className="google-btn"
@@ -101,11 +135,11 @@ export default function AuthCard({ isLogin, setIsLogin }) {
         <img
           src="https://developers.google.com/identity/images/g-logo.png"
           alt="Google"
-          width="20"
         />
         Continue with Google
       </a>
 
+      {/* Footer */}
       <div className="auth-footer">
         {isLogin ? (
           <>
