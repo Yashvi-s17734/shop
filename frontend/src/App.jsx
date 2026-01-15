@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import OAuthSuccess from "./pages/OAuthSuccess";
+import ForgotPassword from "./pages/ForgotPassword";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/" element={<Login />} />
         <Route path="/home" element={<Home />} />
         <Route path="/oauth-success" element={<OAuthSuccess />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
       </Routes>
     </>
   );

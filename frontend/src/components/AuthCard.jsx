@@ -81,7 +81,12 @@ export default function AuthCard({ isLogin, setIsLogin }) {
       />
       {isLogin && (
         <div className="forgot-wrapper">
-          <span className="forgot-link">Forgot password?</span>
+          <span
+            className="forgot-link"
+            onClick={() => navigate("/forgot-password")}
+          >
+            Forgot password?
+          </span>
         </div>
       )}
 
