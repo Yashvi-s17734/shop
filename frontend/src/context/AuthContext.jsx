@@ -44,10 +44,17 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
-  const logout = async () => {
-    await api.post("/auth/logout");
-    setUser(null);
-  };
+ const logout = async () => {
+   try {
+     await api.post("/api/auth/logout");
+   } catch (err) {
+     console.error(err);
+   } finally {
+     setUser(null);
+     localStorage.removeItem("user");
+   }
+ };
+
 
   return (
     <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
