@@ -1,0 +1,76 @@
+/* Page */
+.login-page {
+  width: 100%;
+  color: #6b4f2d;
+}
+
+/* Hero section */
+.login-hero {
+  position: relative;
+  width: 100%;
+  background-size: cover;
+  background-position: right center;
+  background-repeat: no-repeat;
+  padding-top: 4rem;
+}
+
+/* Overlay */
+.login-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(247, 239, 230, 0.9),
+    rgba(247, 239, 230, 0.7),
+    transparent
+  );
+  backdrop-filter: blur(6px);
+}
+
+/* Content */
+.login-content {
+  position: relative;
+  max-width: 1200px;
+  margin: auto;
+  padding: 3rem 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+/* Tablet */
+@media (max-width: 768px) {
+  .login-hero {
+    background-position: center;
+    padding-top: 3rem;
+  }
+
+  .login-content {
+    padding: 2.5rem 1.5rem;
+  }
+
+  .login-overlay {
+    background: rgba(247, 239, 230, 0.92);
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .login-hero {
+    padding-top: 2.5rem;
+  }
+
+  .login-content {
+    padding: 2rem 1.25rem;
+  }
+}
+
+/* Small phones */
+@media (max-width: 360px) {
+  .login-content {
+    padding: 1.75rem 1rem;
+  }
+}

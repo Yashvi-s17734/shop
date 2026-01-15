@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import "./TrustStrip.css";
 
 const itemVariant = {
   hidden: { opacity: 0, y: 8 },
@@ -14,9 +15,9 @@ const itemVariant = {
 
 export default function TrustStrip() {
   return (
-    <section className="bg-[#f7efe6] border-t border-[#e6d6c3]">
+    <section className="trust-strip">
       <motion.div
-        className="max-w-6xl mx-auto px-10 py-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-xl"
+        className="trust-strip-container"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: false, margin: "-80px" }}
@@ -28,28 +29,24 @@ export default function TrustStrip() {
           },
         }}
       >
-        <motion.div variants={itemVariant}>
+        <motion.div className="trust-item" variants={itemVariant}>
           🪔
-          <br />
-          Pure Materials
+          <span>Pure Materials</span>
         </motion.div>
 
-        <motion.div variants={itemVariant}>
+        <motion.div className="trust-item" variants={itemVariant}>
           🛠
-          <br />
-          Trusted Local Shop
+          <span>Trusted Local Shop</span>
         </motion.div>
 
-        <motion.div variants={itemVariant}>
+        <motion.div className="trust-item" variants={itemVariant}>
           🏺
-          <br />
-          Traditional Craftsmanship
+          <span>Traditional Craftsmanship</span>
         </motion.div>
 
-        <motion.div variants={itemVariant}>
+        <motion.div className="trust-item" variants={itemVariant}>
           🛡
-          <br />
-          Quality Assured
+          <span>Quality Assured</span>
         </motion.div>
       </motion.div>
     </section>

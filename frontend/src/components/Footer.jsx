@@ -1,21 +1,36 @@
+import "./Footer.css";
+
 export default function Footer() {
   return (
-    <footer className="bg-[#6b2e2e] text-white">
-      <div className="max-w-7xl mx-auto px-10 py-12 grid md:grid-cols-2 gap-8">
-        <div>
-          <h2 className="text-2xl font-semibold mb-3">
-            Jayendra Vasan Bhandar
-          </h2>
-          <p>Ghat Bazaar, Sihor – 364240</p>
-          <p>+91 9825152881</p>
-          <p>+91 9328337767</p>
+    <footer className="footer">
+      <div className="footer-container">
+        {/* Brand */}
+        <div className="footer-brand">
+          <h2>Jayendra Vasan Bhandar</h2>
+          <p>
+            Traditional sweets & snacks made with purity and trust for
+            generations.
+          </p>
         </div>
 
-        <div className="flex items-end justify-end">
-          <button className="bg-green-600 px-6 py-3 rounded-lg hover:bg-green-700">
-            Chat with us
-          </button>
+        {/* Contact */}
+        <div className="footer-contact">
+          <h3>Contact</h3>
+          <p>Ghat Bazaar, Sihor – 364240</p>
+          <p>📞 +91 98251 52881</p>
+          <p>📞 +91 93283 37767</p>
         </div>
+
+        {/* CTA */}
+        <div className="footer-cta">
+          <h3>Need help?</h3>
+          <button>Chat on WhatsApp</button>
+        </div>
+      </div>
+
+      <div className="footer-bottom">
+        <p>© {new Date().getFullYear()} Jayendra Vasan Bhandar</p>
+        <p>Made with ❤️ in India</p>
       </div>
     </footer>
   );

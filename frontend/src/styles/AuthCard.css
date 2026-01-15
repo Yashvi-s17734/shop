@@ -1,0 +1,173 @@
+/* Card */
+.auth-card {
+  width: 100%;
+  max-width: 48rem; /* max-w-xl */
+  background: #fffaf3;
+  border-radius: 1rem;
+  padding: 2.5rem;
+}
+
+/* Tabs */
+.auth-tabs {
+  display: flex;
+  margin-bottom: 2rem;
+  background: #ead9c4;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.auth-tab {
+  width: 50%;
+  padding: 0.75rem 0;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.auth-tab.active {
+  background: #b38b59;
+  color: white;
+}
+
+/* Inputs */
+.auth-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.auth-input {
+  width: 100%;
+  height: 3rem;
+  padding: 0 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d8c6b2;
+  outline: none;
+}
+
+.auth-input:focus {
+  box-shadow: 0 0 0 2px rgba(179, 139, 89, 0.4);
+}
+
+/* Button */
+.auth-btn {
+  width: 100%;
+  height: 3rem;
+  margin-top: 1.5rem;
+  background: #b38b59;
+  color: white;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.auth-btn:active {
+  transform: scale(0.97);
+  background: #9c7444;
+}
+
+/* Google button */
+.google-btn {
+  width: 100%;
+  height: 3rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border: 1px solid #d8c6b2;
+  border-radius: 0.5rem;
+  background: white;
+  color: #5c442a;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.google-btn:hover {
+  background: #fffaf3;
+}
+
+/* Footer */
+.auth-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 1.125rem;
+}
+
+.auth-link {
+  color: #b38b59;
+  cursor: pointer;
+}
+/* =========================
+   RESPONSIVE STYLES
+========================= */
+
+/* Tablets (≤ 768px) */
+@media (max-width: 768px) {
+  .auth-card {
+    padding: 2rem;
+    max-width: 90%;
+  }
+
+  .auth-footer {
+    font-size: 1rem;
+  }
+}
+
+/* Mobile (≤ 480px) */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+  }
+
+  .auth-tabs {
+    flex-direction: column;
+  }
+
+  .auth-tab {
+    width: 100%;
+    padding: 0.65rem 0;
+    font-size: 0.95rem;
+  }
+
+  .auth-label {
+    font-size: 0.9rem;
+  }
+
+  .auth-input {
+    height: 2.75rem;
+    font-size: 0.9rem;
+  }
+
+  .auth-btn,
+  .google-btn {
+    height: 2.75rem;
+    font-size: 0.9rem;
+  }
+
+  .google-btn img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .auth-footer {
+    font-size: 0.95rem;
+  }
+}
+
+/* Small phones (≤ 360px) */
+@media (max-width: 360px) {
+  .auth-card {
+    padding: 1.25rem;
+  }
+
+  .auth-btn,
+  .google-btn {
+    font-size: 0.85rem;
+  }
+}

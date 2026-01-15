@@ -1,0 +1,89 @@
+/* Header base */
+.header {
+  width: 100%;
+  background-color: #f7efe6;
+  border-bottom: 1px solid #e6d6c3;
+}
+
+/* Container */
+.header-container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Logo */
+.header-logo {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2f1d1d;
+}
+
+/* Navigation */
+.header-nav {
+  display: flex;
+  gap: 2rem;
+}
+
+.header-nav a {
+  text-decoration: none;
+  font-size: 1.1rem;
+  color: #2f1d1d;
+  transition: color 0.2s ease;
+}
+
+.header-nav a:hover {
+  color: #b38b59;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+/* Tablet */
+@media (max-width: 768px) {
+  .header-container {
+    padding: 1rem 1.5rem;
+  }
+
+  .header-logo {
+    font-size: 1.5rem;
+  }
+
+  .header-nav {
+    gap: 1.25rem;
+  }
+
+  .header-nav a {
+    font-size: 1rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .header-container {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .header-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .header-nav a {
+    font-size: 0.95rem;
+  }
+}
+
+/* Small phones */
+@media (max-width: 360px) {
+  .header-logo {
+    font-size: 1.35rem;
+  }
+}
