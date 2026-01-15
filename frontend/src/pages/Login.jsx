@@ -6,7 +6,7 @@ import AuthCard from "../components/AuthCard";
 import TrustStrip from "../components/TrustStrip";
 import Footer from "../components/Footer";
 
-import "./Login.css";
+import "../styles/Login.css"
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);

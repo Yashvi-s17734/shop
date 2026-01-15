@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
-import "./OAuthSuccess.css";
+import "../styles/OAuthSuccess.css";
 
 export default function OAuthSuccess() {
   const navigate = useNavigate();
