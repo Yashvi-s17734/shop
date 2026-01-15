@@ -171,3 +171,17 @@
     font-size: 0.85rem;
   }
 }
+.forgot-wrapper {
+  text-align: right;
+  margin: 6px 0 14px;
+}
+
+.forgot-link {
+  font-size: 0.85rem;
+  color: #b38b59;
+  cursor: pointer;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}

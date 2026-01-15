@@ -63,7 +63,7 @@ export default function AuthCard({ isLogin, setIsLogin }) {
         <>
           <label className="auth-label">Email Address</label>
           <input
-          placeholder="Email"
+            placeholder="Email"
             className="auth-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -79,6 +79,11 @@ export default function AuthCard({ isLogin, setIsLogin }) {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
+      {isLogin && (
+        <div className="forgot-wrapper">
+          <span className="forgot-link">Forgot password?</span>
+        </div>
+      )}
 
       <button className="auth-btn" onClick={handleSubmit} disabled={loading}>
         {loading ? "Please wait..." : isLogin ? "Login" : "Create Account"}
