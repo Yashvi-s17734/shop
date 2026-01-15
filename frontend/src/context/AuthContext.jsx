@@ -44,20 +44,21 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
- const logout = async () => {
-   try {
-     await api.post("/api/auth/logout");
-   } catch (err) {
-     console.error(err);
-   } finally {
-     setUser(null);
-     localStorage.removeItem("user");
-   }
- };
-
+  const logout = async () => {
+    try {
+      await api.post("/api/auth/logout");
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUser(null);
+      localStorage.removeItem("user");
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
+    <AuthContext.Provider
+      value={{ user, setUser, login, signup, logout, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );
