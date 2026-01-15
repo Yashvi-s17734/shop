@@ -11,35 +11,34 @@ export function AuthProvider({ children }) {
       setUser(JSON.parse(storedUser));
     }
   }, []);
-  const login = async (email, password) => {
+  const login = async (identifier, password) => {
     try {
       setLoading(true);
       const res = await api.post("/auth/login", {
-        username: email,
+        identifier,
         password,
       });
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-      localStorage.setItem("token", res.data.token);
       setUser(res.data.user);
-
+      localStorage.setItem("user", JSON.stringify(res.data.user));
       return true;
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      console.log(err.response?.data?.message || err.message);
       return false;
     } finally {
       setLoading(false);
     }
   };
-  const signup = async (email, password) => {
+  const signup = async (username, email, password) => {
     try {
       setLoading(true);
       const res = await api.post("/auth/register", {
-        username: email,
+        username,
+        email,
         password,
       });
       return true;
     } catch (err) {
-      alert(err.response?.data?.message || "Signup failed");
+      console.log(err.response?.data?.message || "Signup failed");
       return false;
     } finally {
       setLoading(false);

@@ -1,16 +1,21 @@
 const jwt = require("jsonwebtoken");
-const protect = (req, res, next) => {
-  let token = req.cookies.token;
-  if (!token) {
-    return res.status(401).json({ message: "Not authorized" });
-  }
+const User = require("../models/User");
+
+module.exports = async (req, res, next) => {
   try {
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+
+    if (!token) return res.status(401).json({ message: "No token" });
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    const user = await User.findById(decoded.id).select("-password");
+
+    req.user = user;
     next();
-  } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+  } catch (err) {
+    console.error("Auth middleware error:", err.message);
+    return res
+      .status(401)
+      .json({ message: "Unauthorized – invalid/expired token" });
   }
 };
-
-module.exports = protect;
