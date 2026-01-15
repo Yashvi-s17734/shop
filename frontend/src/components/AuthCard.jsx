@@ -49,11 +49,14 @@ export default function AuthCard({ isLogin, setIsLogin }) {
         </button>
       </div>
 
-      <label className="auth-label">Email or Username</label>
+      <label className="auth-label">
+        {isLogin ? "Email or Username" : "Username"}
+      </label>
       <input
         className="auth-input"
         value={identifier}
         onChange={(e) => setIdentifier(e.target.value)}
+        placeholder={isLogin ? "Email or Username" : "Username"}
       />
 
       {!isLogin && (
