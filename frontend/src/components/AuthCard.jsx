@@ -63,6 +63,7 @@ export default function AuthCard({ isLogin, setIsLogin }) {
         <>
           <label className="auth-label">Email Address</label>
           <input
+          placeholder="Email"
             className="auth-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -73,6 +74,7 @@ export default function AuthCard({ isLogin, setIsLogin }) {
       <label className="auth-label">Password</label>
       <input
         type="password"
+        placeholder="Password"
         className="auth-input"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
