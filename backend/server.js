@@ -42,12 +42,6 @@ app.use(
 app.use(passport.initialize());
 
 // CORS configuration - improved & safer for production
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://shop-henna-beta.vercel.app",
-  // Add your final production frontend domain here when ready
-  // "https://your-final-domain.com",
-];
 
 // ── Routes ───────────────────────────────────────────────────
 app.use("/api/auth", require("./routes/authRoutes"));

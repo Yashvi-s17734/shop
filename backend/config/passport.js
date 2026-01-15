@@ -20,8 +20,21 @@ passport.use(
         });
 
         if (!user) {
+          const baseUsername = profile.displayName
+            .replace(/\s+/g, "")
+            .toLowerCase();
+
+          let username = baseUsername;
+          let count = 1;
+
+          // 🔁 Ensure unique username
+          while (await User.findOne({ username })) {
+            username = `${baseUsername}${count}`;
+            count++;
+          }
+
           user = await User.create({
-            username: profile.displayName.replace(/\s+/g, "").toLowerCase(),
+            username,
             email,
             provider: "google",
             googleId: profile.id,

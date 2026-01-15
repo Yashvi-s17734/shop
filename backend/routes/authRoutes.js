@@ -54,10 +54,17 @@ router.post("/login", async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
+    if (!user.password) {
+      return res.status(401).json({
+        message: "Please login using Google",
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
+
     const token = jwt.sign(
       {
         id: user._id,
@@ -68,7 +75,8 @@ router.post("/login", async (req, res) => {
     );
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
+
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });

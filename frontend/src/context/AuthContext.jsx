@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
   const login = async (identifier, password) => {
     try {
       setLoading(true);
-      const res = await api.post("/auth/login", {
+      const res = await api.post("api/auth/login", {
         identifier,
         password,
       });
@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
   const signup = async (username, email, password) => {
     try {
       setLoading(true);
-      const res = await api.post("/auth/register", {
+      const res = await api.post("api/auth/register", {
         username,
         email,
         password,
