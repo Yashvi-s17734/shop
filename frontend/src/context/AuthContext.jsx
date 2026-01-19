@@ -11,8 +11,6 @@ export function AuthProvider({ children }) {
     const storedUser = localStorage.getItem("user");
     if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
-
-  // LOGIN
   const login = async (identifier, password) => {
     try {
       setLoading(true);
@@ -34,8 +32,6 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
-
-  // SIGNUP (ONLY CREATES USER, OTP IS SEPARATE)
   const signup = async (username, email, password) => {
     try {
       setLoading(true);

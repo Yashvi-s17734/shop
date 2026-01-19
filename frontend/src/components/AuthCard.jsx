@@ -21,8 +21,6 @@ export default function AuthCard({ isLogin, setIsLogin }) {
       toast.error("Please fill all fields");
       return;
     }
-
-    // 🔐 LOGIN
     if (isLogin) {
       const res = await login(identifier, password);
 
@@ -32,8 +30,6 @@ export default function AuthCard({ isLogin, setIsLogin }) {
         toast.error(res.message);
       }
     }
-
-    // ✉️ SIGNUP → SEND OTP
     else {
       const res = await signup(identifier, email, password);
 
@@ -71,8 +67,6 @@ export default function AuthCard({ isLogin, setIsLogin }) {
           Sign Up
         </button>
       </div>
-
-      {/* LOGIN */}
       {isLogin && (
         <>
           <label className="auth-label">Email or Username</label>
@@ -110,8 +104,6 @@ export default function AuthCard({ isLogin, setIsLogin }) {
           </button>
         </>
       )}
-
-      {/* SIGNUP */}
       {!isLogin && (
         <>
           <label className="auth-label">Username</label>
@@ -148,8 +140,6 @@ export default function AuthCard({ isLogin, setIsLogin }) {
           </button>
         </>
       )}
-
-      {/* GOOGLE */}
       <a
         href={`${import.meta.env.VITE_API_URL}/api/auth/google`}
         className="google-btn"

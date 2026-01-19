@@ -141,16 +141,30 @@ router.get("/me", authMiddleware, async (req, res) => {
 router.post("/send-otp", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: "Email required" });
-  const otp = crypto.randomInt(100000, 999999).toString();
-  const hashedOtp = await bcrypt.hash(otp, 10);
-  await Otp.deleteMany({ email });
-  await Otp.create({
-    email,
-    otp: hashedOtp,
-    expiresAt: Date.now() + 5 * 60 * 1000,
-  });
-  await sendOtpEmail(email, otp);
-  res.json({ message: "OTP sent successfully!" });
+
+  try {
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+
+    await Otp.deleteMany({ email });
+    await Otp.create({
+      email,
+      otp: hashedOtp,
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
+    await sendOtpEmail(email, otp);
+    res.json({ message: "OTP sent successfully!" });
+  } catch (error) {
+    console.error(
+      "SendGrid error details:",
+      error.response?.body || error.message,
+    );
+
+    res.status(500).json({
+      message: "Failed to send OTP",
+      error: error.response?.body?.errors?.[0]?.message || "Internal error",
+    });
+  }
 });
 router.post("/verify-otp", async (req, res) => {
   const { email, otp } = req.body;
@@ -165,8 +179,20 @@ router.post("/verify-otp", async (req, res) => {
   if (!isValid) return res.status(400).json({ message: "Invalid OTP" });
 
   let user = await User.findOne({ email });
+
   if (!user) {
+    const baseUsername = email.split("@")[0];
+
+    let username = baseUsername;
+    let count = 1;
+
+    while (await User.findOne({ username })) {
+      username = `${baseUsername}${count}`;
+      count++;
+    }
+
     user = await User.create({
+      username,
       email,
       isVerified: true,
       provider: "local",
@@ -175,6 +201,7 @@ router.post("/verify-otp", async (req, res) => {
 
   user.isVerified = true;
   await user.save();
+
   await Otp.deleteMany({ email });
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
