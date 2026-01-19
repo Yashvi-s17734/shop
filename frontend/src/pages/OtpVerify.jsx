@@ -28,7 +28,8 @@ export default function OtpVerify() {
       });
 
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      const meRes=await api.get("/api/auth/me")
+      localStorage.setItem("user", JSON.stringify(meRes.data.user));
 
       toast.success("Email verified successfully");
       navigate("/home", { replace: true });
