@@ -209,6 +209,7 @@ router.post("/verify-otp", async (req, res) => {
   });
 
   res.json({ message: "Verified", token, user });
+  console.log("OTP VERIFY USER:", user);
 });
 
 module.exports = router;
