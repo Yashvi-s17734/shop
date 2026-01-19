@@ -1,19 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api/axios";
 import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
 export default function OtpVerify() {
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
+  const { setUser } = useAuth();
 
   const email = location.state?.email;
 
-  if (!email) {
-    navigate("/", { replace: true });
-    return null;
-  }
+  // 🔒 Clear any previous auth session (VERY IMPORTANT)
+  useEffect(() => {
+    setUser(null);
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    delete api.defaults.headers.common["Authorization"];
+  }, [setUser]);
+
+  // ❌ If someone opens this page directly
+  useEffect(() => {
+    if (!email) {
+      navigate("/", { replace: true });
+    }
+  }, [email, navigate]);
 
   const handleVerify = async () => {
     if (!otp) {
@@ -22,13 +34,23 @@ export default function OtpVerify() {
     }
 
     try {
+      // 1️⃣ Verify OTP
       const res = await api.post("/api/auth/verify-otp", {
         email,
         otp,
       });
 
-      localStorage.setItem("token", res.data.token);
-      const meRes=await api.get("/api/auth/me")
+      const token = res.data.token;
+
+      // 2️⃣ Store token + attach to axios
+      localStorage.setItem("token", token);
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      // 3️⃣ Fetch correct logged-in user
+      const meRes = await api.get("/api/auth/me");
+
+      // 4️⃣ Update auth state
+      setUser(meRes.data.user);
       localStorage.setItem("user", JSON.stringify(meRes.data.user));
 
       toast.success("Email verified successfully");
@@ -59,6 +81,7 @@ export default function OtpVerify() {
         placeholder="Enter 6-digit OTP"
         value={otp}
         onChange={(e) => setOtp(e.target.value)}
+        maxLength={6}
       />
 
       <button onClick={handleVerify}>Verify</button>
