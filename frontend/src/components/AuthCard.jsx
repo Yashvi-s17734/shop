@@ -20,17 +20,23 @@ export default function AuthCard({ isLogin, setIsLogin }) {
       toast.error("Please fill all fields");
       return;
     }
-
     if (isLogin) {
-      const ok = await login(identifier, password);
-      if (ok) navigate("/home");
-      else toast.error("Login failed");
+      const res = await login(identifier, password);
+
+      if (res.success) {
+        navigate("/home");
+      } else {
+        toast.error(res.message);
+      }
     } else {
-      const ok = await signup(identifier, email, password);
-      if (ok) {
+      const res = await signup(identifier, email, password);
+
+      if (res.success) {
         toast.success("Account created! Please login.");
         setIsLogin(true);
-      } else toast.error("Signup failed");
+      } else {
+        toast.error(res.message);
+      }
     }
   };
 
@@ -51,8 +57,6 @@ export default function AuthCard({ isLogin, setIsLogin }) {
           Sign Up
         </button>
       </div>
-
-      {/* LOGIN */}
       {isLogin && (
         <>
           <label className="auth-label">Email or Username</label>
@@ -62,6 +66,7 @@ export default function AuthCard({ isLogin, setIsLogin }) {
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
           />
+
           <label className="auth-label">Password</label>
           <input
             type="password"
@@ -70,6 +75,7 @@ export default function AuthCard({ isLogin, setIsLogin }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+
           <div className="password-row">
             <span
               className="forgot-link"
@@ -88,11 +94,9 @@ export default function AuthCard({ isLogin, setIsLogin }) {
           </button>
         </>
       )}
-
-      {/* SIGNUP */}
       {!isLogin && (
         <>
-          <label className="auth-label">Email or Username</label>
+          <label className="auth-label">Username</label>
           <input
             placeholder="Username"
             className="auth-input"
@@ -110,8 +114,8 @@ export default function AuthCard({ isLogin, setIsLogin }) {
 
           <label className="auth-label">Password</label>
           <input
-            placeholder="Password"
             type="password"
+            placeholder="Password"
             className="auth-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -126,8 +130,6 @@ export default function AuthCard({ isLogin, setIsLogin }) {
           </button>
         </>
       )}
-
-      {/* Google */}
       <a
         href={`${import.meta.env.VITE_API_URL}/api/auth/google`}
         className="google-btn"
@@ -138,8 +140,6 @@ export default function AuthCard({ isLogin, setIsLogin }) {
         />
         Continue with Google
       </a>
-
-      {/* Footer */}
       <div className="auth-footer">
         {isLogin ? (
           <>

@@ -2,48 +2,63 @@ import { createContext, useState, useContext, useEffect } from "react";
 import api from "../api/axios";
 
 const AuthContext = createContext(null);
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
   }, []);
+
+  // ✅ LOGIN
   const login = async (identifier, password) => {
     try {
       setLoading(true);
-      const res = await api.post("api/auth/login", {
+      const res = await api.post("/api/auth/login", {
         identifier,
         password,
       });
+
       setUser(res.data.user);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      return true;
+
+      return { success: true };
     } catch (err) {
-      console.log(err.response?.data?.message || err.message);
-      return false;
+      return {
+        success: false,
+        message: err.response?.data?.message || "Login failed",
+      };
     } finally {
       setLoading(false);
     }
   };
+
+  // ✅ SIGNUP
   const signup = async (username, email, password) => {
     try {
       setLoading(true);
-      const res = await api.post("api/auth/register", {
+      await api.post("/api/auth/register", {
         username,
         email,
         password,
       });
-      return true;
+
+      return { success: true };
     } catch (err) {
-      console.log(err.response?.data?.message || "Signup failed");
-      return false;
+      return {
+        success: false,
+        message: err.response?.data?.message || "Signup failed",
+      };
     } finally {
       setLoading(false);
     }
   };
+
+  // ✅ LOGOUT
   const logout = async () => {
     try {
       await api.post("/api/auth/logout");
