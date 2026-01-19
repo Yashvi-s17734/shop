@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       minlength: 6,
-      default: null, // ✅ allows Google users
+      default: null,
     },
 
     provider: {
@@ -32,14 +32,17 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
     role: {
       type: String,
       enum: ["admin", "user"],
       default: "user",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("User", userSchema);

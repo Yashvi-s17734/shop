@@ -9,12 +9,10 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
-  // ✅ LOGIN
+  // LOGIN
   const login = async (identifier, password) => {
     try {
       setLoading(true);
@@ -37,7 +35,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ✅ SIGNUP
+  // SIGNUP (ONLY CREATES USER, OTP IS SEPARATE)
   const signup = async (username, email, password) => {
     try {
       setLoading(true);
@@ -58,7 +56,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ✅ LOGOUT
   const logout = async () => {
     try {
       await api.post("/api/auth/logout");

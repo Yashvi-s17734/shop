@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import api from "../api/axios";
 import "../styles/AuthCard.css";
 
 export default function AuthCard({ isLogin, setIsLogin }) {
@@ -20,6 +21,8 @@ export default function AuthCard({ isLogin, setIsLogin }) {
       toast.error("Please fill all fields");
       return;
     }
+
+    // 🔐 LOGIN
     if (isLogin) {
       const res = await login(identifier, password);
 
@@ -28,21 +31,32 @@ export default function AuthCard({ isLogin, setIsLogin }) {
       } else {
         toast.error(res.message);
       }
-    } else {
+    }
+
+    // ✉️ SIGNUP → SEND OTP
+    else {
       const res = await signup(identifier, email, password);
 
-      if (res.success) {
-        toast.success("Account created! Please login.");
-        setIsLogin(true);
-      } else {
+      if (!res.success) {
         toast.error(res.message);
+        return;
+      }
+
+      try {
+        await api.post("/api/auth/send-otp", { email });
+
+        toast.success("OTP sent to your email");
+        navigate("/verify-otp", {
+          state: { email },
+        });
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Failed to send OTP");
       }
     }
   };
 
   return (
     <div className="auth-card">
-      {/* Tabs */}
       <div className="auth-tabs">
         <button
           className={`auth-tab ${isLogin ? "active" : ""}`}
@@ -57,6 +71,8 @@ export default function AuthCard({ isLogin, setIsLogin }) {
           Sign Up
         </button>
       </div>
+
+      {/* LOGIN */}
       {isLogin && (
         <>
           <label className="auth-label">Email or Username</label>
@@ -94,6 +110,8 @@ export default function AuthCard({ isLogin, setIsLogin }) {
           </button>
         </>
       )}
+
+      {/* SIGNUP */}
       {!isLogin && (
         <>
           <label className="auth-label">Username</label>
@@ -130,6 +148,8 @@ export default function AuthCard({ isLogin, setIsLogin }) {
           </button>
         </>
       )}
+
+      {/* GOOGLE */}
       <a
         href={`${import.meta.env.VITE_API_URL}/api/auth/google`}
         className="google-btn"
@@ -140,6 +160,7 @@ export default function AuthCard({ isLogin, setIsLogin }) {
         />
         Continue with Google
       </a>
+
       <div className="auth-footer">
         {isLogin ? (
           <>

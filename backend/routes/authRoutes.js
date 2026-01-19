@@ -1,5 +1,8 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+const Otp = require("../models/Otp");
+const sendOtpEmail = require("../utils/sendOtp");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const authMiddleware = require("../middleware/authMiddleware");
@@ -50,7 +53,11 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({
       $or: [{ username: identifier }, { email: identifier }],
     });
-
+    if (!user.isVerified) {
+      return res.status(401).json({
+        message: "Please verify your email first",
+      });
+    }
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -71,7 +78,7 @@ router.post("/login", async (req, res) => {
         role: user.role,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
     res.cookie("token", token, {
       httpOnly: true,
@@ -101,7 +108,7 @@ router.get(
   "/google",
   passport.authenticate("google", {
     scope: ["profile", "email"],
-  })
+  }),
 );
 router.get(
   "/google/callback",
@@ -116,19 +123,65 @@ router.get(
         role: req.user.role,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
     res.redirect(`${process.env.FRONTEND_URL}/oauth-success?token=${token}`);
-  }
+  },
 );
 router.get("/me", authMiddleware, async (req, res) => {
   try {
-    // req.user is already set by middleware (and password is excluded)
     res.json({ user: req.user });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
+
+router.post("/send-otp", async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email required" });
+  const otp = crypto.randomInt(100000, 999999).toString();
+  const hashedOtp = await bcrypt.hash(otp, 10);
+  await Otp.deleteMany({ email });
+  await Otp.create({
+    email,
+    otp: hashedOtp,
+    expiresAt: Date.now() + 5 * 60 * 1000,
+  });
+  await sendOtpEmail(email, otp);
+  res.json({ message: "OTP sent successfully!" });
+});
+router.post("/verify-otp", async (req, res) => {
+  const { email, otp } = req.body;
+
+  const record = await Otp.findOne({ email });
+  if (!record) return res.status(400).json({ message: "OTP expired" });
+
+  if (record.expiresAt < Date.now())
+    return res.status(400).json({ message: "OTP expired" });
+
+  const isValid = await bcrypt.compare(otp, record.otp);
+  if (!isValid) return res.status(400).json({ message: "Invalid OTP" });
+
+  let user = await User.findOne({ email });
+  if (!user) {
+    user = await User.create({
+      email,
+      isVerified: true,
+      provider: "local",
+    });
+  }
+
+  user.isVerified = true;
+  await user.save();
+  await Otp.deleteMany({ email });
+
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+
+  res.json({ message: "Verified", token, user });
+});
+
 module.exports = router;
