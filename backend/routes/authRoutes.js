@@ -8,6 +8,17 @@ const User = require("../models/User");
 const authMiddleware = require("../middleware/authMiddleware");
 const passport = require("passport");
 const router = express.Router();
+const blockedIps = new Map();
+
+function isIpBlocked(ip) {
+  const unblockTime = blockedIps.get(ip);
+  if (!unblockTime) return false;
+  if (Date.now() > unblockTime) {
+    blockedIps.delete(ip);
+    return false;
+  }
+  return true;
+}
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -254,37 +265,58 @@ router.post("/forgot-password", async (req, res) => {
 
 router.post("/verify-reset-otp", async (req, res) => {
   try {
-    const { email, otp } = req.body; // ✅ FIRST
-
-    if (!email || !otp) {
-      return res.status(400).json({ message: "Email and OTP are required" });
-    }
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    if (!user.password || user.provider === "google") {
-      return res.status(400).json({
-        message: "This account uses Google login",
+    const { email, otp } = req.body;
+    const ip = req.ip;
+    if (isIpBlocked(ip)) {
+      return res.status(429).json({
+        message: "Too many attempts. Try again after 20 minutes.",
       });
     }
 
     const record = await Otp.findOne({ email });
+
     if (!record) {
       return res.status(400).json({ message: "OTP expired" });
     }
 
     if (record.expiresAt < Date.now()) {
+      await Otp.deleteMany({ email });
       return res.status(400).json({ message: "OTP expired" });
     }
 
     const isValid = await bcrypt.compare(otp, record.otp);
     if (!isValid) {
-      return res.status(400).json({ message: "Invalid OTP" });
+      record.attempts += 1;
+      await record.save();
+      if (record.attempts === 3) {
+        const newOtp = crypto.randomInt(100000, 999999).toString();
+        const hashedOtp = await bcrypt.hash(newOtp, 10);
+
+        record.otp = hashedOtp;
+        record.attempts = 0;
+        record.expiresAt = Date.now() + 5 * 60 * 1000;
+        await record.save();
+
+        await sendOtpEmail(email, newOtp);
+
+        return res.status(400).json({
+          message: "Too many attempts. New OTP sent to your email.",
+        });
+      }
+      if (record.attempts >= 6) {
+        blockedIps.set(ip, Date.now() + 20 * 60 * 1000); // 20 min
+        await Otp.deleteMany({ email });
+
+        return res.status(429).json({
+          message: "Too many failed attempts. Try again after 20 minutes.",
+        });
+      }
+
+      return res.status(400).json({
+        message: `Invalid OTP. ${3 - (record.attempts % 3)} attempts left`,
+      });
     }
+    await Otp.deleteMany({ email });
 
     res.json({ message: "OTP verified" });
   } catch (err) {
