@@ -4,32 +4,51 @@ import api from "../api/axios";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import "../styles/OtpVerify.css";
-const OTP_TIME = 300;
+
+const OTP_TIME = 300; // 5 minutes
+
 export default function OtpVerify() {
   const [otp, setOtp] = useState("");
   const [timeLeft, setTimeLeft] = useState(OTP_TIME);
+  const [verifying, setVerifying] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
   const { setUser } = useAuth();
 
   const email = location.state?.email;
 
+  /* Reset auth state */
   useEffect(() => {
     setUser(null);
     localStorage.clear();
     delete api.defaults.headers.common["Authorization"];
   }, [setUser]);
 
+  /* Protect route */
   useEffect(() => {
     if (!email) navigate("/", { replace: true });
   }, [email, navigate]);
+
+  /* ⏳ TIMER */
   useEffect(() => {
     if (timeLeft <= 0) return;
+
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft((t) => t - 1);
     }, 1000);
+
     return () => clearInterval(timer);
   }, [timeLeft]);
+
+  /* 🔥 AUTO SUBMIT WHEN OTP = 6 */
+  useEffect(() => {
+    if (otp.length === 6 && !verifying) {
+      handleVerify();
+    }
+    // eslint-disable-next-line
+  }, [otp]);
+
   const formatTime = (sec) => {
     const m = String(Math.floor(sec / 60)).padStart(2, "0");
     const s = String(sec % 60).padStart(2, "0");
@@ -37,10 +56,8 @@ export default function OtpVerify() {
   };
 
   const handleVerify = async () => {
-    if (otp.length !== 6) {
-      toast.error("Enter 6-digit OTP");
-      return;
-    }
+    if (verifying) return;
+    setVerifying(true);
 
     try {
       const res = await api.post("/api/auth/verify-otp", { email, otp });
@@ -57,13 +74,19 @@ export default function OtpVerify() {
       navigate("/home", { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.message || "Invalid OTP");
+      setOtp("");
+    } finally {
+      setVerifying(false);
     }
   };
 
   const resendOtp = async () => {
     try {
       await api.post("/api/auth/send-otp", { email });
+
       toast.success("OTP resent");
+      setOtp("");
+      setTimeLeft(OTP_TIME); // ✅ TIMER RESTART
     } catch {
       toast.error("Failed to resend OTP");
     }
@@ -73,19 +96,22 @@ export default function OtpVerify() {
     <div className="otp-container">
       <div className="otp-card">
         <h2 className="otp-title">Verify Email</h2>
+
         <p className="otp-subtitle">
-          Enter the OTP sent to <br />
+          OTP sent to <br />
           <span>{email}</span>
         </p>
 
         <input
-          type="text"
           className="otp-input"
           placeholder="••••••"
           value={otp}
-          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+          onChange={(e) =>
+            setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+          }
           maxLength={6}
         />
+
         <div className="otp-timer">
           {timeLeft > 0 ? (
             <>
@@ -95,11 +121,20 @@ export default function OtpVerify() {
             <span className="expired">OTP expired</span>
           )}
         </div>
-        <button className="otp-btn" onClick={handleVerify}>
-          Verify OTP
+
+        <button
+          className="otp-btn"
+          onClick={handleVerify}
+          disabled={otp.length !== 6 || verifying}
+        >
+          {verifying ? "Verifying..." : "Verify OTP"}
         </button>
 
-        <button className="otp-resend" onClick={resendOtp}>
+        <button
+          className="otp-resend"
+          onClick={resendOtp}
+          disabled={timeLeft > 0}
+        >
           Resend OTP
         </button>
       </div>

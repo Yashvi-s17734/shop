@@ -95,6 +95,7 @@
   cursor: not-allowed;
 }
 
+
 @media (max-width: 480px) {
   .otp-card {
     padding: 1.8rem;
