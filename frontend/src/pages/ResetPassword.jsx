@@ -2,57 +2,129 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import toast from "react-hot-toast";
-import "../styles/AuthCard.css";
+import "../styles/ForgotPassword.css";
 
 export default function ResetPassword() {
-  const { state } = useLocation();
+  const location = useLocation();
   const navigate = useNavigate();
+  const email = location.state?.email;
 
-  const email = state?.email;
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  if (!email) navigate("/", { replace: true });
+  if (!email) {
+    navigate("/", { replace: true });
+    return null;
+  }
 
-  const resetPassword = async () => {
-    if (!otp || !password) return toast.error("All fields required");
+  // STEP 1️⃣ VERIFY OTP
+  const verifyOtp = async () => {
+    if (!otp) {
+      toast.error("Enter OTP");
+      return;
+    }
 
     try {
-      await api.post("/api/auth/reset-password", {
+      setLoading(true);
+
+      await api.post("/api/auth/verify-reset-otp", {
         email,
         otp,
+      });
+
+      toast.success("OTP verified");
+      setOtpVerified(true); // 🔥 SHOW PASSWORD FIELD
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Invalid OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // STEP 2️⃣ RESET PASSWORD
+  const resetPassword = async () => {
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await api.post("/api/auth/reset-password", {
+        email,
         password,
       });
 
-      toast.success("Password reset successful");
+      toast.success("Password reset successfully");
       navigate("/", { replace: true });
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed");
+      toast.error("Failed to reset password");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="auth-card">
-      <h2 className="auth-title">Reset Password</h2>
+    <div className="forgot-wrapper">
+      <div className="forgot-card">
+        <h2 className="forgot-title">Reset Password</h2>
 
-      <input
-        placeholder="Enter OTP"
-        className="auth-input"
-        value={otp}
-        onChange={(e) => setOtp(e.target.value)}
-      />
+        {/* OTP STEP */}
+        {!otpVerified && (
+          <>
+            <p className="forgot-subtitle">
+              Enter OTP sent to <b>{email}</b>
+            </p>
 
-      <input
-        type="password"
-        placeholder="New Password"
-        className="auth-input"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+            <input
+              type="text"
+              placeholder="Enter 6-digit OTP"
+              className="forgot-input"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              maxLength={6}
+            />
 
-      <button className="auth-btn" onClick={resetPassword}>
-        Reset Password
-      </button>
+            <button
+              className="forgot-btn"
+              onClick={verifyOtp}
+              disabled={loading}
+            >
+              {loading ? "Verifying..." : "Verify OTP"}
+            </button>
+          </>
+        )}
+
+        {/* PASSWORD STEP */}
+        {otpVerified && (
+          <>
+            <p className="forgot-subtitle">Set your new password</p>
+
+            <input
+              type="password"
+              placeholder="New Password"
+              className="forgot-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            <button
+              className="forgot-btn"
+              onClick={resetPassword}
+              disabled={loading}
+            >
+              {loading ? "Updating..." : "Reset Password"}
+            </button>
+          </>
+        )}
+
+        <button className="back-login" onClick={() => navigate("/")}>
+          ← Back to Login
+        </button>
+      </div>
     </div>
   );
 }
