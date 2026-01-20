@@ -75,8 +75,26 @@
 .otp-resend:hover {
   text-decoration: underline;
 }
+.otp-timer {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #6b4f2d;
+}
 
-/* Responsive */
+.otp-timer b {
+  color: #b38b59;
+}
+
+.expired {
+  color: #b00020;
+  font-weight: 600;
+}
+
+.otp-resend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 480px) {
   .otp-card {
     padding: 1.8rem;

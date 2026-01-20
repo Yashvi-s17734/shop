@@ -4,9 +4,10 @@ import api from "../api/axios";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import "../styles/OtpVerify.css";
-
+const OTP_TIME = 300;
 export default function OtpVerify() {
   const [otp, setOtp] = useState("");
+  const [timeLeft, setTimeLeft] = useState(OTP_TIME);
   const navigate = useNavigate();
   const location = useLocation();
   const { setUser } = useAuth();
@@ -22,6 +23,18 @@ export default function OtpVerify() {
   useEffect(() => {
     if (!email) navigate("/", { replace: true });
   }, [email, navigate]);
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+  const formatTime = (sec) => {
+    const m = String(Math.floor(sec / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
+    return `${m}:${s}`;
+  };
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
@@ -73,7 +86,15 @@ export default function OtpVerify() {
           onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
           maxLength={6}
         />
-
+        <div className="otp-timer">
+          {timeLeft > 0 ? (
+            <>
+              OTP expires in <b>{formatTime(timeLeft)}</b>
+            </>
+          ) : (
+            <span className="expired">OTP expired</span>
+          )}
+        </div>
         <button className="otp-btn" onClick={handleVerify}>
           Verify OTP
         </button>
