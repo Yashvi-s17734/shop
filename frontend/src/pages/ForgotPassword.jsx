@@ -1,20 +1,34 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
+import toast from "react-hot-toast";
 import "../styles/ForgotPassword.css";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!email) {
-      setError("Please enter your email");
+      toast.error("Please enter your email");
       return;
     }
 
-    // 🔹 API call will come later
-    setError("We cannot find your email.");
+    try {
+      setLoading(true);
+
+      await api.post("/api/auth/forgot-password", { email });
+
+      toast.success("OTP sent to your email");
+      navigate("/reset-password", {
+        state: { email },
+      });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "We cannot find your email");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -24,7 +38,7 @@ export default function ForgotPassword() {
 
         <h2 className="forgot-title">Forgot Password</h2>
         <p className="forgot-subtitle">
-          Enter your email and we’ll send you a link to reset your password.
+          Enter your email and we’ll send you an OTP to reset your password.
         </p>
 
         <input
@@ -32,16 +46,15 @@ export default function ForgotPassword() {
           placeholder="Email address"
           className="forgot-input"
           value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            setError("");
-          }}
+          onChange={(e) => setEmail(e.target.value)}
         />
 
-        {error && <p className="forgot-error">{error}</p>}
-
-        <button className="forgot-btn" onClick={handleSubmit}>
-          Submit
+        <button
+          className="forgot-btn"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? "Sending..." : "Submit"}
         </button>
 
         <button className="back-login" onClick={() => navigate("/")}>

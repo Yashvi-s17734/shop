@@ -211,5 +211,36 @@ router.post("/verify-otp", async (req, res) => {
   res.json({ message: "Verified", token, user });
   console.log("OTP VERIFY USER:", user);
 });
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(400).json({ message: "User not found" });
+  const otp = crypto.randomInt(100000, 999999).toString();
+  const hashedOtp = await bcrypt.hash(otp, 10);
+  await Otp.deleteMany({ email });
+  await Otp.create({
+    email,
+    otp: hashedOtp,
+    expiresAt: Date.now() + 5 * 60 * 1000,
+  });
+  await sendOtpEmail(email, otp);
+  res.json({ mesaage: "OTP sent to email" });
+});
+router.post("/reset-password", async (req, res) => {
+  const { email, otp, password } = req.body;
 
+  const record = await Otp.findOne({ email });
+  if (!record || record.expiresAt < Date.now())
+    return res.status(400).json({ message: "OTP expired" });
+
+  const valid = await bcrypt.compare(otp, record.otp);
+  if (!valid) return res.status(400).json({ message: "Invalid OTP" });
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  await User.updateOne({ email }, { password: hashedPassword });
+
+  await Otp.deleteMany({ email });
+
+  res.json({ message: "Password reset successful" });
+});
 module.exports = router;
