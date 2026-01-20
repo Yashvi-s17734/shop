@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api/axios";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
-import "../styles/OtpVerify.css"
+import "../styles/OtpVerify.css";
 
 export default function OtpVerify() {
   const [otp, setOtp] = useState("");
@@ -12,33 +12,30 @@ export default function OtpVerify() {
   const { setUser } = useAuth();
 
   const email = location.state?.email;
+
   useEffect(() => {
     setUser(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    localStorage.clear();
     delete api.defaults.headers.common["Authorization"];
   }, [setUser]);
+
   useEffect(() => {
-    if (!email) {
-      navigate("/", { replace: true });
-    }
+    if (!email) navigate("/", { replace: true });
   }, [email, navigate]);
 
   const handleVerify = async () => {
-    if (!otp) {
-      toast.error("Please enter OTP");
+    if (otp.length !== 6) {
+      toast.error("Enter 6-digit OTP");
       return;
     }
 
     try {
-      const res = await api.post("/api/auth/verify-otp", {
-        email,
-        otp,
-      });
+      const res = await api.post("/api/auth/verify-otp", { email, otp });
 
       const token = res.data.token;
       localStorage.setItem("token", token);
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
       const meRes = await api.get("/api/auth/me");
       setUser(meRes.data.user);
       localStorage.setItem("user", JSON.stringify(meRes.data.user));
@@ -60,23 +57,31 @@ export default function OtpVerify() {
   };
 
   return (
-    <div className="otp-page">
-      <h2>Verify OTP</h2>
-      <p>
-        OTP sent to <b>{email}</b>
-      </p>
+    <div className="otp-container">
+      <div className="otp-card">
+        <h2 className="otp-title">Verify Email</h2>
+        <p className="otp-subtitle">
+          Enter the OTP sent to <br />
+          <span>{email}</span>
+        </p>
 
-      <input
-        type="text"
-        placeholder="Enter 6-digit OTP"
-        value={otp}
-        onChange={(e) => setOtp(e.target.value)}
-        maxLength={6}
-      />
-      <button onClick={handleVerify}>Verify</button>
-      <button onClick={resendOtp} className="link-btn">
-        Resend OTP
-      </button>
+        <input
+          type="text"
+          className="otp-input"
+          placeholder="••••••"
+          value={otp}
+          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+          maxLength={6}
+        />
+
+        <button className="otp-btn" onClick={handleVerify}>
+          Verify OTP
+        </button>
+
+        <button className="otp-resend" onClick={resendOtp}>
+          Resend OTP
+        </button>
+      </div>
     </div>
   );
 }
