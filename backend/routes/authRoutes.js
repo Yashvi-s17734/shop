@@ -14,7 +14,7 @@ router.post("/register", async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
@@ -48,30 +48,34 @@ router.post("/login", async (req, res) => {
   try {
     const { identifier, password } = req.body;
     if (!identifier || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({
+        message: "Email/Username and password are required",
+      });
     }
     const user = await User.findOne({
       $or: [{ username: identifier }, { email: identifier }],
     });
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid email/username or password",
+      });
+    }
     if (!user.isVerified) {
       return res.status(401).json({
         message: "Please verify your email first",
       });
-    }
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
     }
     if (!user.password) {
       return res.status(401).json({
         message: "Please login using Google",
       });
     }
-
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({
+        message: "Invalid email/username or password",
+      });
     }
-
     const token = jwt.sign(
       {
         id: user._id,
@@ -80,13 +84,6 @@ router.post("/login", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" },
     );
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-
-      sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
     res.json({
       token,
       user: {
@@ -97,9 +94,13 @@ router.post("/login", async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    console.error("LOGIN ERROR:", error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
   }
 });
+
 router.post("/logout", (req, res) => {
   res.clearCookie("token");
   res.json({ message: "Logged out" });
