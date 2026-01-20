@@ -226,21 +226,57 @@ router.post("/forgot-password", async (req, res) => {
   await sendOtpEmail(email, otp);
   res.json({ mesaage: "OTP sent to email" });
 });
-router.post("/reset-password", async (req, res) => {
-  const { email, otp, password } = req.body;
+router.post("/verify-reset-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
 
-  const record = await Otp.findOne({ email });
-  if (!record || record.expiresAt < Date.now())
-    return res.status(400).json({ message: "OTP expired" });
+    const record = await Otp.findOne({ email });
+    if (!record) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
 
-  const valid = await bcrypt.compare(otp, record.otp);
-  if (!valid) return res.status(400).json({ message: "Invalid OTP" });
+    if (record.expiresAt < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  await User.updateOne({ email }, { password: hashedPassword });
+    const isValid = await bcrypt.compare(otp, record.otp);
+    if (!isValid) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
 
-  await Otp.deleteMany({ email });
-
-  res.json({ message: "Password reset successful" });
+    // ✅ OTP verified, BUT DO NOT change password here
+    res.json({ message: "OTP verified" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
+
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!password || password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    await user.save();
+    await Otp.deleteMany({ email });
+
+    res.json({ message: "Password reset successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 module.exports = router;
