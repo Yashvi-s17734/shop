@@ -243,8 +243,6 @@ router.post("/verify-reset-otp", async (req, res) => {
     if (!isValid) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
-
-    // ✅ OTP verified, BUT DO NOT change password here
     res.json({ message: "OTP verified" });
   } catch (err) {
     console.error(err);
