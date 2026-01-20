@@ -38,6 +38,8 @@ router.post("/register", async (req, res) => {
       username,
       email,
       password: hashedPassword,
+      provider: "local",
+      isVerified: false,
     });
     res.status(201).json({ message: "user registered successfully!!" });
   } catch (error) {
@@ -213,23 +215,62 @@ router.post("/verify-otp", async (req, res) => {
   console.log("OTP VERIFY USER:", user);
 });
 router.post("/forgot-password", async (req, res) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(400).json({ message: "User not found" });
-  const otp = crypto.randomInt(100000, 999999).toString();
-  const hashedOtp = await bcrypt.hash(otp, 10);
-  await Otp.deleteMany({ email });
-  await Otp.create({
-    email,
-    otp: hashedOtp,
-    expiresAt: Date.now() + 5 * 60 * 1000,
-  });
-  await sendOtpEmail(email, otp);
-  res.json({ mesaage: "OTP sent to email" });
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        message: "No account found with this email",
+      });
+    }
+    if (!user.password || user.provider === "google") {
+      return res.status(400).json({
+        message: "This account uses Google login. Please sign in with Google.",
+      });
+    }
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+
+    await Otp.deleteMany({ email });
+    await Otp.create({
+      email,
+      otp: hashedOtp,
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
+
+    await sendOtpEmail(email, otp);
+
+    res.json({ message: "OTP sent to your email" });
+  } catch (error) {
+    console.error("FORGOT PASSWORD ERROR:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
+
 router.post("/verify-reset-otp", async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const { email, otp } = req.body; // ✅ FIRST
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.password || user.provider === "google") {
+      return res.status(400).json({
+        message: "This account uses Google login",
+      });
+    }
 
     const record = await Otp.findOne({ email });
     if (!record) {
@@ -244,6 +285,7 @@ router.post("/verify-reset-otp", async (req, res) => {
     if (!isValid) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
+
     res.json({ message: "OTP verified" });
   } catch (err) {
     console.error(err);
@@ -264,6 +306,11 @@ router.post("/reset-password", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+    if (!user.password || user.provider === "google") {
+      return res.status(400).json({
+        message: "This account uses Google login",
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);

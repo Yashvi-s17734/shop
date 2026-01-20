@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import toast from "react-hot-toast";
@@ -14,10 +14,12 @@ export default function ResetPassword() {
   const [otpVerified, setOtpVerified] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  if (!email) {
-    navigate("/", { replace: true });
-    return null;
-  }
+  // ✅ SAFE REDIRECT
+  useEffect(() => {
+    if (!email) {
+      navigate("/", { replace: true });
+    }
+  }, [email, navigate]);
 
   // STEP 1️⃣ VERIFY OTP
   const verifyOtp = async () => {
@@ -35,7 +37,7 @@ export default function ResetPassword() {
       });
 
       toast.success("OTP verified");
-      setOtpVerified(true); // 🔥 SHOW PASSWORD FIELD
+      setOtpVerified(true);
     } catch (err) {
       toast.error(err.response?.data?.message || "Invalid OTP");
     } finally {
@@ -61,7 +63,7 @@ export default function ResetPassword() {
       toast.success("Password reset successfully");
       navigate("/", { replace: true });
     } catch (err) {
-      toast.error("Failed to reset password");
+      toast.error(err.response?.data?.message || "Failed to reset password");
     } finally {
       setLoading(false);
     }

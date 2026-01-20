@@ -11,8 +11,8 @@ export default function AuthCard({ isLogin, setIsLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-
   const handleSubmit = async () => {
+    // basic empty check
     if (
       !password ||
       (isLogin && !identifier) ||
@@ -21,6 +21,8 @@ export default function AuthCard({ isLogin, setIsLogin }) {
       toast.error("Please fill all fields");
       return;
     }
+
+    // ================= LOGIN =================
     if (isLogin) {
       const res = await login(identifier, password);
 
@@ -29,25 +31,31 @@ export default function AuthCard({ isLogin, setIsLogin }) {
       } else {
         toast.error(res.message);
       }
+      return;
     }
-    else {
-      const res = await signup(identifier, email, password);
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-      if (!res.success) {
-        toast.error(res.message);
-        return;
-      }
+    if (!emailRegex.test(email)) {
+      toast.error("Enter a valid email address");
+      return;
+    }
 
-      try {
-        await api.post("/api/auth/send-otp", { email });
+    const res = await signup(identifier, email, password);
 
-        toast.success("OTP sent to your email");
-        navigate("/verify-otp", {
-          state: { email },
-        });
-      } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to send OTP");
-      }
+    if (!res.success) {
+      toast.error(res.message);
+      return;
+    }
+
+    try {
+      await api.post("/api/auth/send-otp", { email });
+
+      toast.success("OTP sent to your email");
+      navigate("/verify-otp", {
+        state: { email },
+      });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to send OTP");
     }
   };
 
