@@ -77,3 +77,4 @@ exports.logout = async (req, res) => {
 exports.me = async (req, res) => {
   res.json({ user: req.user });
 };
+console.log("authService keys:", Object.keys(authService));
