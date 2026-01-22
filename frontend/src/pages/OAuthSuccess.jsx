@@ -21,15 +21,12 @@ export default function OAuthSuccess() {
         localStorage.setItem("token", token);
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        const user = {
-          username: "Guest",
-          email: "",
-          role: "user",
-          provider: "google",
-        };
+        const response = await api.get("/api/auth/me");
 
-        setUser(user);
-        localStorage.setItem("user", JSON.stringify(user));
+        if (response.data?.user) {
+          setUser(response.data.user);
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+        }
 
         navigate("/home", { replace: true });
       } catch (error) {
@@ -40,7 +37,7 @@ export default function OAuthSuccess() {
     };
 
     handleOAuthCallback();
-  }, []);
+  }, [navigate, setUser]);
 
   return (
     <div className="oauth-success">
