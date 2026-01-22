@@ -14,48 +14,45 @@ const sendOtpEmail = async (email, otp) => {
   <meta charset="UTF-8" />
   <title>Email Verification</title>
 </head>
-<body style="margin:0; padding:0; background:#f4efe9; font-family: 'Segoe UI', Arial, sans-serif;">
+<body style="margin:0; padding:0; background:#f7efe6; font-family:Arial, sans-serif;">
 
   <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
     <tr>
       <td align="center">
 
         <table width="100%" cellpadding="0" cellspacing="0"
-          style="max-width:520px; background:#1b1612; border-radius:16px; box-shadow:0 14px 45px rgba(0,0,0,0.35); overflow:hidden;">
+          style="max-width:520px; background:#fffaf3; border-radius:16px; box-shadow:0 18px 45px rgba(0,0,0,0.12); overflow:hidden;">
 
-          <!-- Header -->
           <tr>
-            <td style="padding:30px; text-align:center; background:#14100d;">
-              <h1 style="margin:0; font-size:24px; letter-spacing:0.6px; color:#c9a45c;">
+            <td style="padding:30px; text-align:center; background:#fff3e2;">
+              <h1 style="margin:0; font-size:24px; color:#b3874f;">
                 Jayendra Vasan Bhandar
               </h1>
-              <p style="margin:6px 0 0; font-size:13px; color:#a89c8c;">
+              <p style="margin:6px 0 0; font-size:13px; color:#8b7355;">
                 Premium Kitchen Essentials
               </p>
             </td>
           </tr>
 
-          <!-- Body -->
           <tr>
-            <td style="padding:32px; color:#e6dfd6; font-size:15px; line-height:1.7;">
-              <p style="margin:0 0 14px;">Namaste 🙏</p>
+            <td style="padding:32px; color:#5c4a36; font-size:15px; line-height:1.7;">
+              <p style="margin:0 0 14px;">Hello,</p>
 
-              <p style="margin:0 0 20px;">
-                To continue securely, please verify your email using the One-Time Password below:
+              <p style="margin:0 0 22px;">
+                Use the One-Time Password below to verify your email address.
               </p>
 
-              <!-- OTP -->
               <div style="margin:28px 0; text-align:center;">
                 <span style="
                   display:inline-block;
                   padding:18px 34px;
-                  font-size:32px;
+                  font-size:30px;
                   letter-spacing:6px;
                   font-weight:600;
-                  color:#c9a45c;
-                  background:#120f0c;
+                  color:#b3874f;
+                  background:#fff7ed;
                   border-radius:12px;
-                  border:1px solid #3f2f1c;
+                  border:1px solid #e3c9a5;
                 ">
                   ${otp}
                 </span>
@@ -65,18 +62,17 @@ const sendOtpEmail = async (email, otp) => {
                 This OTP is valid for <b>5 minutes</b>.
               </p>
 
-              <p style="margin:0; font-size:13px; color:#b6ab9d;">
-                Please do not share this code with anyone for your safety.
+              <p style="margin:0; font-size:13px; color:#8a7760;">
+                Please do not share this code with anyone.
               </p>
             </td>
           </tr>
 
-          <!-- Footer -->
           <tr>
-            <td style="padding:22px; text-align:center; background:#14100d; font-size:13px; color:#9f9385;">
+            <td style="padding:22px; text-align:center; background:#fff3e2; font-size:13px; color:#8b7355;">
               <p style="margin:0;">
-                Warm regards,<br />
-                <b style="color:#c9a45c;">Jayendra Vasan Bhandar</b>
+                Regards,<br />
+                <b style="color:#b3874f;">Jayendra Vasan Bhandar</b>
               </p>
             </td>
           </tr>
