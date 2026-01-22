@@ -8,9 +8,27 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
+    const initAuth = async () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        } else {
+          const res = await api.get("/api/auth/me");
+          setUser(res.data.user);
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+        }
+      } catch {
+        setUser(null);
+        localStorage.removeItem("user");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initAuth();
   }, []);
+
   const login = async (identifier, password) => {
     try {
       setLoading(true);
@@ -32,6 +50,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
+
   const signup = async (username, email, password) => {
     try {
       setLoading(true);
@@ -40,7 +59,6 @@ export function AuthProvider({ children }) {
         email,
         password,
       });
-
       return { success: true };
     } catch (err) {
       return {
@@ -55,8 +73,6 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await api.post("/api/auth/logout");
-    } catch (err) {
-      console.error(err);
     } finally {
       setUser(null);
       localStorage.removeItem("user");
@@ -67,7 +83,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{ user, setUser, login, signup, logout, loading }}
     >
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }
