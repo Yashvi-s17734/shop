@@ -7,7 +7,6 @@ import "../styles/OAuthSuccess.css";
 export default function OAuthSuccess() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
-
   useEffect(() => {
     const handleOAuthCallback = async () => {
       try {
@@ -22,25 +21,19 @@ export default function OAuthSuccess() {
         localStorage.setItem("token", token);
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        const response = await api.get("/api/auth/me");
+        setUser({ token });
+        localStorage.setItem("user", JSON.stringify({ token }));
 
-        if (response.data?.user) {
-          setUser(response.data.user);
-          localStorage.setItem("user", JSON.stringify(response.data.user));
-        }
-
-        window.history.replaceState({}, document.title, "/oauth-success");
         navigate("/home", { replace: true });
       } catch (error) {
         console.error("OAuth callback failed:", error);
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        localStorage.clear();
         navigate("/", { replace: true });
       }
     };
 
     handleOAuthCallback();
-  }, [navigate, setUser]);
+  }, []);
 
   return (
     <div className="oauth-success">

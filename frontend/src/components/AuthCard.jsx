@@ -12,7 +12,6 @@ export default function AuthCard({ isLogin, setIsLogin }) {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const handleSubmit = async () => {
-    // basic empty check
     if (
       !password ||
       (isLogin && !identifier) ||
@@ -21,8 +20,6 @@ export default function AuthCard({ isLogin, setIsLogin }) {
       toast.error("Please fill all fields");
       return;
     }
-
-    // ================= LOGIN =================
     if (isLogin) {
       const res = await login(identifier, password);
 
