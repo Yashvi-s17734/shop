@@ -105,9 +105,7 @@ async function forgotPassword(email) {
 }
 
 module.exports = {
-  forgotPassword,
-};
-module.exports = {
   register,
   login,
+  forgotPassword,
 };
