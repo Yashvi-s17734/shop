@@ -9,9 +9,9 @@ import Categories from "../components/Categories";
 import AboutRetail from "../components/AboutRetail";
 import Footer from "../components/Footer";
 import LogoutModal from "../components/LogoutModal";
-import dinnerware from "../assets/images/dinnerware.webp";
-import serveware from "../assets/images/serveware.webp";
-import tableware from "../assets/images/tableware.webp";
+import dinnerware from "../assets/dinnerware.webp";
+import serveware from "../assets/serveware.webp";
+import tableware from "../assets/tableware.webp";
 
 import "../styles/Home.css";
 
