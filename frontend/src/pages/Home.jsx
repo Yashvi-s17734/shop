@@ -24,10 +24,8 @@ export default function Home() {
 
   return (
     <>
-      {/* Header */}
       <Header />
 
-      {/* Welcome bar */}
       <div className="home-welcome-bar">
         <h2>Welcome {user?.username || "Guest"}</h2>
 
@@ -40,12 +38,33 @@ export default function Home() {
         </button>
       </div>
       <Hero />
+      <div className="category-section">
+        <div className="category-card">
+          <div className="arch-frame">
+            <img src="/images/dinnerware.webp" alt="Dinnerware" />
+          </div>
+          <h3>Dinnerware</h3>
+        </div>
+
+        <div className="category-card">
+          <div className="arch-frame">
+            <img src="/images/serveware.webp" alt="Serveware" />
+          </div>
+          <h3>Serveware</h3>
+        </div>
+
+        <div className="category-card">
+          <div className="arch-frame">
+            <img src="/images/tableware.webp" alt="Tableware" />
+          </div>
+          <h3>Tableware</h3>
+        </div>
+      </div>
+
       <TrustStrip />
       <Categories />
       <AboutRetail />
       <Footer />
-
-      {/* Logout Modal */}
       {showModal && (
         <LogoutModal
           onConfirm={handleLogout}
