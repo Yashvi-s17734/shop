@@ -16,6 +16,8 @@ import tableware from "../assets/tableware.webp";
 import "../styles/Home.css";
 
 export default function Home() {
+  console.log(dinnerware, serveware, tableware);
+
   const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
