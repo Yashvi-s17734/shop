@@ -26,8 +26,6 @@ passport.use(
 
           let username = baseUsername;
           let count = 1;
-
-          // 🔁 Ensure unique username
           while (await User.findOne({ username })) {
             username = `${baseUsername}${count}`;
             count++;
@@ -41,7 +39,6 @@ passport.use(
             password: null,
           });
         } else if (!user.googleId) {
-          // 🔗 Link existing local account to Google
           user.googleId = profile.id;
           user.provider = "google";
           await user.save();

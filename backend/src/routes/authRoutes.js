@@ -28,10 +28,13 @@ router.get(
     failureRedirect: "/login",
   }),
   (req, res) => {
-    res.redirect(
-      `${process.env.FRONTEND_URL}/oauth-success?token=${req.user.token}`,
+    const token = jwt.sign(
+      { id: req.user._id, role: req.user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" },
     );
+
+    res.redirect(`${process.env.FRONTEND_URL}/oauth-success?token=${token}`);
   },
 );
-
 module.exports = router;
