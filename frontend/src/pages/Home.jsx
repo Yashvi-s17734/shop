@@ -19,6 +19,7 @@ export default function Home() {
   console.log(dinnerware, serveware, tableware);
 
   const { user, logout, loading } = useAuth();
+  if (!user) return null;
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
 

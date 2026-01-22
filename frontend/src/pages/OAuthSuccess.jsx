@@ -21,8 +21,15 @@ export default function OAuthSuccess() {
         localStorage.setItem("token", token);
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        setUser({ token });
-        localStorage.setItem("user", JSON.stringify({ token }));
+        const user = {
+          username: "Guest",
+          email: "",
+          role: "user",
+          provider: "google",
+        };
+
+        setUser(user);
+        localStorage.setItem("user", JSON.stringify(user));
 
         navigate("/home", { replace: true });
       } catch (error) {
