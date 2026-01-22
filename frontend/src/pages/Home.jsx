@@ -9,7 +9,7 @@ import Categories from "../components/Categories";
 import AboutRetail from "../components/AboutRetail";
 import Footer from "../components/Footer";
 import LogoutModal from "../components/LogoutModal";
-import dinnerware from "../assets/dinnerware.webp";
+import dinnerware from "../assets/brassutensils.png";
 import serveware from "../assets/serveware.webp";
 import tableware from "../assets/tableware.webp";
 
