@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const otpService = require("./otp.service");
 
 async function register({ username, email, password }) {
   if (!username || !email || !password) {
