@@ -3,6 +3,7 @@ const router = express.Router();
 const passport = require("passport");
 const authController = require("../controllers/auth.controller");
 const authMiddleware = require("../middleware/authMiddleware");
+const jwt = require("jsonwebtoken");
 
 router.post("/register", authController.register);
 router.post("/login", authController.login);
