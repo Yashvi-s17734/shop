@@ -15,7 +15,19 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://shop-henna-beta.vercel.app"],
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        "http://localhost:5173",
+        "https://shop-henna-beta.vercel.app",
+        "https://shop-git-otp-attempts-working-yashvi-shahs-projects-3f7dcf6f.vercel.app",
+      ];
+
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: [
@@ -24,7 +36,6 @@ app.use(
       "X-Requested-With",
       "Accept",
     ],
-    exposedHeaders: ["Set-Cookie"],
   }),
 );
 
