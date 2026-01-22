@@ -87,7 +87,26 @@ async function login({ identifier, password }) {
     },
   };
 }
+async function forgotPassword(email) {
+  const user = await User.findOne({ email });
 
+  if (!user) {
+    throw { status: 404, message: "No account found with this email" };
+  }
+
+  if (!user.password || user.provider === "google") {
+    throw {
+      status: 400,
+      message: "This account uses Google login",
+    };
+  }
+
+  await otpService.sendOtp(email);
+}
+
+module.exports = {
+  forgotPassword,
+};
 module.exports = {
   register,
   login,
