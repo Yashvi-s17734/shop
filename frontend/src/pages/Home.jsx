@@ -9,6 +9,9 @@ import Categories from "../components/Categories";
 import AboutRetail from "../components/AboutRetail";
 import Footer from "../components/Footer";
 import LogoutModal from "../components/LogoutModal";
+import dinnerware from "../assets/images/dinnerware.webp";
+import serveware from "../assets/images/serveware.webp";
+import tableware from "../assets/images/tableware.webp";
 
 import "../styles/Home.css";
 
@@ -41,21 +44,21 @@ export default function Home() {
       <div className="category-section">
         <div className="category-card">
           <div className="arch-frame">
-            <img src="/images/dinnerware.webp" alt="Dinnerware" />
+            <img src={dinnerware} alt="Dinnerware" />
           </div>
           <h3>Dinnerware</h3>
         </div>
 
         <div className="category-card">
           <div className="arch-frame">
-            <img src="/images/serveware.webp" alt="Serveware" />
+            <img src={serveware} alt="Serveware" />{" "}
           </div>
           <h3>Serveware</h3>
         </div>
 
         <div className="category-card">
           <div className="arch-frame">
-            <img src="/images/tableware.webp" alt="Tableware" />
+            <img src={tableware} alt="Tableware" />{" "}
           </div>
           <h3>Tableware</h3>
         </div>
