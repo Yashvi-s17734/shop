@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const Otp = require("../models/Otp");
 const sendOtpEmail = require("../utils/sendOtp");
-const { blockIp } = require("../utils/ipBlocker");
+const { blockIp, blockEmail } = require("../utils/ipBlocker");
 
 async function sendOtp(email) {
   const otp = crypto.randomInt(100000, 999999).toString();
@@ -34,7 +34,6 @@ async function verifySignupOtp(email, otp) {
 
   await Otp.deleteMany({ email });
 }
-
 async function verifyResetOtp(email, otp, ip) {
   const record = await Otp.findOne({ email });
 
@@ -47,7 +46,22 @@ async function verifyResetOtp(email, otp, ip) {
 
   if (!isValid) {
     record.attempts += 1;
+    record.totalAttempts = (record.totalAttempts || 0) + 1;
 
+    // 🔥 BLOCK AFTER 6 TOTAL ATTEMPTS
+    if (record.totalAttempts >= 6) {
+      blockIp(ip, 20);
+      blockEmail(email, 20);
+      await Otp.deleteMany({ email });
+
+      throw {
+        status: 429,
+        code: "BLOCKED",
+        message: "Too many attempts. Try again after 20 minutes",
+      };
+    }
+
+    // 🔁 RESEND AFTER 3 WRONG ATTEMPTS
     if (record.attempts === 3) {
       const newOtp = crypto.randomInt(100000, 999999).toString();
       record.otp = await bcrypt.hash(newOtp, 10);
@@ -63,24 +77,13 @@ async function verifyResetOtp(email, otp, ip) {
       };
     }
 
-    if (record.attempts >= 6) {
-      blockIp(ip, 20);
-      blockEmail(email, 20);
-      await Otp.deleteMany({ email });
-
-      throw {
-        status: 429,
-        code: "BLOCKED",
-        message: "Too many attempts. Try again after 20 minutes",
-      };
-    }
-
     await record.save();
     throw { status: 400, message: "Invalid OTP" };
   }
 
   await Otp.deleteMany({ email });
 }
+
 module.exports = {
   sendOtp,
   verifySignupOtp,

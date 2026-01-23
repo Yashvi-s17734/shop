@@ -64,15 +64,19 @@ exports.forgotPassword = async (req, res) => {
 
 exports.verifyResetOtp = async (req, res) => {
   try {
-    if (isIpBlocked(req.ip)) {
-      return res
-        .status(429)
-        .json({ message: "Too many attempts. Try again later." });
+    const { email, otp } = req.body;
+
+    if (isIpBlocked(req.ip) || isEmailBlocked(email)) {
+      return res.status(429).json({
+        code: "BLOCKED",
+        message: "Too many attempts. Try again after 20 minutes",
+      });
     }
-    await otpService.verifyResetOtp(req.body.email, req.body.otp, req.ip);
+
+    await otpService.verifyResetOtp(email, otp, req.ip);
     res.json({ message: "OTP verified" });
   } catch (err) {
-    res.status(err.status || 500).json({ message: err.message });
+    res.status(err.status || 500).json(err);
   }
 };
 
