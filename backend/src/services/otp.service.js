@@ -45,14 +45,15 @@ async function verifyResetOtp(email, otp, ip) {
   const isValid = await bcrypt.compare(otp, record.otp);
 
   if (!isValid) {
-    // initialize counters safely
     record.attempts = record.attempts ?? 0;
     record.totalAttempts = record.totalAttempts ?? 0;
 
     record.attempts += 1;
     record.totalAttempts += 1;
 
-    // 🔥 BLOCK AFTER 6 TOTAL ATTEMPTS
+    const attemptsLeft = 3 - record.attempts;
+
+    // 🚫 BLOCK AFTER 6 TOTAL ATTEMPTS
     if (record.totalAttempts >= 6) {
       blockIp(ip, 20);
       blockEmail(email, 20);
@@ -65,7 +66,7 @@ async function verifyResetOtp(email, otp, ip) {
       };
     }
 
-    // 🔁 RESEND AFTER 3 ATTEMPTS (BEFORE THROW)
+    // 🔁 RESEND OTP AFTER 3 WRONG ATTEMPTS
     if (record.attempts === 3) {
       const newOtp = crypto.randomInt(100000, 999999).toString();
 
@@ -73,8 +74,7 @@ async function verifyResetOtp(email, otp, ip) {
       record.attempts = 0;
       record.expiresAt = Date.now() + 5 * 60 * 1000;
 
-      await record.save(); // 🔥 MUST SAVE BEFORE EMAIL
-
+      await record.save();
       await sendOtpEmail(email, newOtp);
 
       throw {
@@ -85,7 +85,13 @@ async function verifyResetOtp(email, otp, ip) {
     }
 
     await record.save();
-    throw { status: 400, message: "Invalid OTP" };
+
+    throw {
+      status: 400,
+      code: "INVALID_OTP",
+      attemptsLeft,
+      message: `Invalid OTP. ${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} left`,
+    };
   }
 
   await Otp.deleteMany({ email });

@@ -51,8 +51,12 @@ export default function ResetPassword() {
         navigate("/forgot-password", { replace: true });
         return;
       }
+      if (data?.code === "INVALID_OTP") {
+        toast.error(data.message);
+        return;
+      }
 
-      toast.error(data?.message || "Invalid OTP");
+      toast.error("Invalid OTP");
     } finally {
       setLoading(false);
     }
