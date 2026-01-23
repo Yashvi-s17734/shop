@@ -106,7 +106,6 @@ async function forgotPassword(email) {
   await otpService.sendOtp(email);
 }
 
-
 async function verifySignupOtpService(email, otp) {
   await verifySignupOtp(email, otp);
 
@@ -134,10 +133,31 @@ async function verifySignupOtpService(email, otp) {
     },
   };
 }
+async function resetPassword(email, password) {
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw { status: 404, message: "User not found" };
+  }
+
+  if (!user.password || user.provider === "google") {
+    throw {
+      status: 400,
+      message: "This account uses Google login",
+    };
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  user.password = hashedPassword;
+  await user.save();
+
+  await Otp.deleteMany({ email });
+}
 
 module.exports = {
   register,
   login,
   forgotPassword,
   verifySignupOtp: verifySignupOtpService,
+  resetPassword,
 };
