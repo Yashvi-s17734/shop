@@ -22,11 +22,11 @@ app.use(
         "https://shop-git-otp-attempts-working-yashvi-shahs-projects-3f7dcf6f.vercel.app",
       ];
 
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+      if (allowed.includes(origin) || origin.endsWith(".vercel.app")) {
+        return callback(null, true);
       }
+
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],

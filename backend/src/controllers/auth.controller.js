@@ -31,7 +31,7 @@ exports.sendOtp = async (req, res) => {
 
 exports.verifyOtp = async (req, res) => {
   try {
-    const data = await authService.verifySignupOtp(req.body);
+    const data = await authService.verifySignupOtp(email,otp);
     res.json(data);
   } catch (err) {
     res.status(err.status || 500).json({ message: err.message });
