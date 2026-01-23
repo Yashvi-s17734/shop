@@ -21,8 +21,8 @@ app.use(
         "https://shop-henna-beta.vercel.app",
         "https://shop-git-otp-attempts-working-yashvi-shahs-projects-3f7dcf6f.vercel.app",
       ];
-
-      if (allowed.includes(origin) || origin.endsWith(".vercel.app")) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
         return callback(null, true);
       }
 
