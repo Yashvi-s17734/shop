@@ -51,30 +51,34 @@ async function verifyResetOtp(email, otp, ip) {
     record.attempts += 1;
     record.totalAttempts += 1;
 
-    const attemptsLeft = 3 - record.attempts;
-    if (record.totalAttempts >= 10) {
-      blockEmail(email, 20);
-      await Otp.deleteMany({ email });
+    const attemptsLeftThisOtp = Math.max(0, 3 - record.attempts); // Never negative
 
+    // BLOCK AFTER 10 TOTAL ATTEMPTS
+    if (record.totalAttempts >= 10) {
+      blockEmail(email, 30); // 30 min lock
+      await Otp.deleteMany({ email });
       throw {
         status: 429,
         code: "BLOCKED",
-        message: "Too many attempts. Try again after 20 minutes",
+        message:
+          "Too many attempts. Password reset is temporarily locked for this account. Try again in 30 minutes.",
       };
     }
 
-
     await record.save();
 
+    // Always send attemptsLeft and code
     throw {
       status: 400,
       code: "INVALID_OTP",
-      attemptsLeft,
-      message: `Invalid OTP. ${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} left`,
+      attemptsLeft: attemptsLeftThisOtp,
+      message: `Invalid OTP. ${attemptsLeftThisOtp} attempt${attemptsLeftThisOtp === 1 ? "" : "s"} left`,
     };
   }
 
+  // Success
   await Otp.deleteMany({ email });
+  return { message: "OTP verified" };
 }
 
 module.exports = {

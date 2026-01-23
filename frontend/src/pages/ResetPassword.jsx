@@ -62,16 +62,20 @@ export default function ResetPassword() {
         return;
       }
 
+      // Inside verifyOtp catch block, replace the INVALID_OTP handling with:
+
       if (data.code === "INVALID_OTP") {
         const left = data.attemptsLeft ?? attemptsLeft - 1;
-        setAttemptsLeft(left);
+        setAttemptsLeft(left); // Always update state with backend value
         toast.error(
           data.message ||
             `Invalid OTP. ${left} attempt${left === 1 ? "" : "s"} left`,
         );
 
+        // Show resend button when attempts are exhausted for this OTP
         if (left <= 0) {
-          setShowResend(true); // Show resend button when 0 attempts left
+          setShowResend(true);
+          setOtp(""); // Optional: clear input
         }
         return;
       }
@@ -131,6 +135,7 @@ export default function ResetPassword() {
       navigate("/login", { replace: true });
     } catch (err) {
       const data = err.response?.data || {};
+      console.log("Backend error response:", data);
       if (data.code === "BLOCKED") {
         blockedRef.current = true;
         toast.error("Too many attempts. You are blocked for 20 minutes.");
