@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const otpService = require("./otp.service");
+const { verifySignupOtp } = require("./otp.service");
 
 async function register({ username, email, password }) {
   if (!username || !email || !password) {
@@ -104,9 +105,7 @@ async function forgotPassword(email) {
 
   await otpService.sendOtp(email);
 }
-const User = require("../models/User");
-const jwt = require("jsonwebtoken");
-const { verifySignupOtp } = require("./otp.service");
+
 
 async function verifySignupOtpService(email, otp) {
   await verifySignupOtp(email, otp);
