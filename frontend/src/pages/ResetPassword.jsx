@@ -132,7 +132,7 @@ export default function ResetPassword() {
       setLoading(true);
       await api.post("/api/auth/reset-password", { email, password });
       toast.success("Password reset successfully!");
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
     } catch (err) {
       const data = err.response?.data || {};
       console.log("Backend error response:", data);
@@ -235,7 +235,7 @@ export default function ResetPassword() {
 
         <button
           className="back-login"
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/")}
           style={{ marginTop: "1.5rem" }}
         >
           ← Back to Login
