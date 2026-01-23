@@ -45,7 +45,7 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
     const ip = req.ip;
 
-    if (isIpBlocked(ip) || isEmailBlocked(email)) {
+    if (isEmailBlocked(email)) {
       return res.status(429).json({
         code: "BLOCKED",
         message: "Too many attempts. Try again after 20 minutes",
@@ -71,7 +71,6 @@ exports.verifyResetOtp = async (req, res) => {
     res.status(err.status || 500).json(err);
   }
 };
-
 
 exports.resetPassword = async (req, res) => {
   try {

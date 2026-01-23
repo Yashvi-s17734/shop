@@ -13,7 +13,9 @@ export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [otpVerified, setOtpVerified] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [attemptsLeft, setAttemptsLeft] = useState(3); // Start with 3 attempts
+  const [attemptsLeft, setAttemptsLeft] = useState(3);
+  const [showResend, setShowResend] = useState(false); // New: Show resend button
+  const [resendCooldown, setResendCooldown] = useState(0); // New: Countdown in seconds
 
   const blockedRef = useRef(false);
 
@@ -22,6 +24,16 @@ export default function ResetPassword() {
       navigate("/", { replace: true });
     }
   }, [email, navigate]);
+
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const verifyOtp = async () => {
     if (loading || blockedRef.current) return;
@@ -33,37 +45,23 @@ export default function ResetPassword() {
 
     try {
       setLoading(true);
-
       await api.post("/api/auth/verify-reset-otp", { email, otp });
-
-      // If no error thrown → OTP is valid
       toast.success("OTP verified successfully!");
       setOtpVerified(true);
-      setAttemptsLeft(3); // Reset for future use if needed
+      setAttemptsLeft(3);
+      setShowResend(false);
     } catch (err) {
       const data = err.response?.data || {};
 
-      // Case 1: New OTP was resent after 3 failed attempts
-      if (data.code === "OTP_RESENT") {
-        toast.success("New OTP sent to your email. Please check your inbox.");
-        setOtp(""); // Clear OTP input
-        setAttemptsLeft(3); // Reset attempts count for the new OTP
-        return;
-      }
-
-      // Case 2: Too many attempts → blocked
       if (data.code === "BLOCKED") {
         blockedRef.current = true;
         toast.error(
           "Too many failed attempts. You are blocked for 20 minutes.",
         );
-        setTimeout(() => {
-          navigate("/forgot-password", { replace: true });
-        }, 2000);
+        setTimeout(() => navigate("/forgot-password", { replace: true }), 2000);
         return;
       }
 
-      // Case 3: Invalid OTP (with attempts left)
       if (data.code === "INVALID_OTP") {
         const left = data.attemptsLeft ?? attemptsLeft - 1;
         setAttemptsLeft(left);
@@ -71,24 +69,54 @@ export default function ResetPassword() {
           data.message ||
             `Invalid OTP. ${left} attempt${left === 1 ? "" : "s"} left`,
         );
+
+        if (left <= 0) {
+          setShowResend(true); // Show resend button when 0 attempts left
+        }
         return;
       }
 
-      // Case 4: OTP expired
       if (data.message?.toLowerCase().includes("expired")) {
-        toast.error("OTP has expired. Please request a new one.");
-        navigate("/forgot-password", { replace: true });
+        toast.error("OTP has expired. Please resend a new one.");
+        setShowResend(true);
         return;
       }
 
-      // Fallback for other errors
       toast.error(data.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  const resendOtp = async () => {
+    if (loading || resendCooldown > 0) return;
+
+    try {
+      setLoading(true);
+      await api.post("/api/auth/forgot-password", { email }); // Reuse forgotPassword endpoint for resend
+      toast.success("New OTP sent to your email. Please check your inbox.");
+      setOtp("");
+      setAttemptsLeft(3); // Reset attempts for new OTP
+      setShowResend(false); // Hide button after resend
+      setResendCooldown(30); // Start 30s cooldown
+    } catch (err) {
+      const data = err.response?.data || {};
+      if (data.code === "BLOCKED") {
+        blockedRef.current = true;
+        toast.error("Too many attempts. You are blocked for 20 minutes.");
+        setTimeout(() => navigate("/forgot-password", { replace: true }), 2000);
+        return;
+      }
+      toast.error(
+        data.message || "Failed to resend OTP. Please try again later.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const resetPassword = async () => {
+    // (Unchanged from previous version)
     if (loading || blockedRef.current) return;
 
     if (password.length < 6) {
@@ -98,26 +126,17 @@ export default function ResetPassword() {
 
     try {
       setLoading(true);
-
-      await api.post("/api/auth/reset-password", {
-        email,
-        password,
-      });
-
+      await api.post("/api/auth/reset-password", { email, password });
       toast.success("Password reset successfully!");
-      navigate("/login", { replace: true }); // or "/" depending on your flow
+      navigate("/login", { replace: true });
     } catch (err) {
       const data = err.response?.data || {};
-
       if (data.code === "BLOCKED") {
         blockedRef.current = true;
         toast.error("Too many attempts. You are blocked for 20 minutes.");
-        setTimeout(() => {
-          navigate("/forgot-password", { replace: true });
-        }, 2000);
+        setTimeout(() => navigate("/forgot-password", { replace: true }), 2000);
         return;
       }
-
       toast.error(
         data.message || "Failed to reset password. Please try again.",
       );
@@ -169,6 +188,22 @@ export default function ResetPassword() {
             >
               {loading ? "Verifying..." : "Verify OTP"}
             </button>
+
+            {showResend && (
+              <button
+                className="resend-btn"
+                onClick={resendOtp}
+                disabled={loading || resendCooldown > 0}
+                style={{
+                  marginTop: "1rem",
+                  opacity: resendCooldown > 0 ? 0.6 : 1,
+                }}
+              >
+                {resendCooldown > 0
+                  ? `Resend in ${resendCooldown}s`
+                  : "Resend OTP"}
+              </button>
+            )}
           </>
         ) : (
           <>
