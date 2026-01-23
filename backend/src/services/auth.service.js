@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const otpService = require("./otp.service");
 const { verifySignupOtp } = require("./otp.service");
+const Otp = require("../models/Otp");
 
 async function register({ username, email, password }) {
   if (!username || !email || !password) {
@@ -133,16 +134,13 @@ async function verifySignupOtpService(email, otp) {
     },
   };
 }
-const bcrypt = require("bcryptjs");
-const User = require("../models/User");
-const Otp = require("../models/Otp");
 
 async function resetPassword({ email, password }) {
   if (!email || !password) {
     throw { status: 400, message: "Email and password are required" };
   }
 
-  const user = await User.findOne({ email }); 
+  const user = await User.findOne({ email });
 
   if (!user) {
     throw { status: 404, message: "User not found" };
