@@ -133,8 +133,16 @@ async function verifySignupOtpService(email, otp) {
     },
   };
 }
-async function resetPassword(email, password) {
-  const user = await User.findOne({ email });
+const bcrypt = require("bcryptjs");
+const User = require("../models/User");
+const Otp = require("../models/Otp");
+
+async function resetPassword({ email, password }) {
+  if (!email || !password) {
+    throw { status: 400, message: "Email and password are required" };
+  }
+
+  const user = await User.findOne({ email }); 
 
   if (!user) {
     throw { status: 404, message: "User not found" };
