@@ -13,6 +13,7 @@ export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [otpVerified, setOtpVerified] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [attemptsLeft, setAttemptsLeft] = useState(3); // Start with 3 attempts
 
   const blockedRef = useRef(false);
 
@@ -26,7 +27,7 @@ export default function ResetPassword() {
     if (loading || blockedRef.current) return;
 
     if (otp.length !== 6) {
-      toast.error("Enter valid OTP");
+      toast.error("Please enter a valid 6-digit OTP");
       return;
     }
 
@@ -35,28 +36,53 @@ export default function ResetPassword() {
 
       await api.post("/api/auth/verify-reset-otp", { email, otp });
 
-      toast.success("OTP verified");
+      // If no error thrown → OTP is valid
+      toast.success("OTP verified successfully!");
       setOtpVerified(true);
+      setAttemptsLeft(3); // Reset for future use if needed
     } catch (err) {
-      const data = err.response?.data;
+      const data = err.response?.data || {};
 
-      if (data?.code === "OTP_RESENT") {
-        toast.success("New OTP sent to your email");
-        setOtp("");
+      // Case 1: New OTP was resent after 3 failed attempts
+      if (data.code === "OTP_RESENT") {
+        toast.success("New OTP sent to your email. Please check your inbox.");
+        setOtp(""); // Clear OTP input
+        setAttemptsLeft(3); // Reset attempts count for the new OTP
         return;
       }
-      if (data?.code === "BLOCKED") {
+
+      // Case 2: Too many attempts → blocked
+      if (data.code === "BLOCKED") {
         blockedRef.current = true;
-        toast.error("Too many attempts. Try again later");
+        toast.error(
+          "Too many failed attempts. You are blocked for 20 minutes.",
+        );
+        setTimeout(() => {
+          navigate("/forgot-password", { replace: true });
+        }, 2000);
+        return;
+      }
+
+      // Case 3: Invalid OTP (with attempts left)
+      if (data.code === "INVALID_OTP") {
+        const left = data.attemptsLeft ?? attemptsLeft - 1;
+        setAttemptsLeft(left);
+        toast.error(
+          data.message ||
+            `Invalid OTP. ${left} attempt${left === 1 ? "" : "s"} left`,
+        );
+        return;
+      }
+
+      // Case 4: OTP expired
+      if (data.message?.toLowerCase().includes("expired")) {
+        toast.error("OTP has expired. Please request a new one.");
         navigate("/forgot-password", { replace: true });
         return;
       }
-      if (data?.code === "INVALID_OTP") {
-        toast.error(data.message);
-        return;
-      }
 
-      toast.error("Invalid OTP");
+      // Fallback for other errors
+      toast.error(data.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -66,7 +92,7 @@ export default function ResetPassword() {
     if (loading || blockedRef.current) return;
 
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error("Password must be at least 6 characters long");
       return;
     }
 
@@ -78,18 +104,23 @@ export default function ResetPassword() {
         password,
       });
 
-      toast.success("Password reset successfully");
-      navigate("/", { replace: true });
+      toast.success("Password reset successfully!");
+      navigate("/login", { replace: true }); // or "/" depending on your flow
     } catch (err) {
-      const data = err.response?.data;
+      const data = err.response?.data || {};
 
-      if (data?.code === "BLOCKED") {
-        toast.error("Too many attempts. Try again later");
-        navigate("/forgot-password", { replace: true });
+      if (data.code === "BLOCKED") {
+        blockedRef.current = true;
+        toast.error("Too many attempts. You are blocked for 20 minutes.");
+        setTimeout(() => {
+          navigate("/forgot-password", { replace: true });
+        }, 2000);
         return;
       }
 
-      toast.error(data?.message || "Failed to reset password");
+      toast.error(
+        data.message || "Failed to reset password. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -100,11 +131,24 @@ export default function ResetPassword() {
       <div className="forgot-card">
         <h2 className="forgot-title">Reset Password</h2>
 
-        {!otpVerified && (
+        {!otpVerified ? (
           <>
             <p className="forgot-subtitle">
-              Enter OTP sent to <b>{email}</b>
+              Enter the OTP sent to <b>{email}</b>
             </p>
+
+            {attemptsLeft < 3 && (
+              <p
+                className="attempts-info"
+                style={{
+                  color: attemptsLeft <= 1 ? "#ff4d4f" : "#fa8c16",
+                  fontWeight: "500",
+                  marginBottom: "1rem",
+                }}
+              >
+                {attemptsLeft} attempt{attemptsLeft === 1 ? "" : "s"} left
+              </p>
+            )}
 
             <input
               type="text"
@@ -114,41 +158,46 @@ export default function ResetPassword() {
               onChange={(e) =>
                 setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
               }
+              maxLength={6}
+              disabled={loading}
             />
 
             <button
               className="forgot-btn"
               onClick={verifyOtp}
-              disabled={loading}
+              disabled={loading || blockedRef.current}
             >
               {loading ? "Verifying..." : "Verify OTP"}
             </button>
           </>
-        )}
-
-        {otpVerified && (
+        ) : (
           <>
             <p className="forgot-subtitle">Set your new password</p>
 
             <input
               type="password"
-              placeholder="New Password"
+              placeholder="New Password (min 6 characters)"
               className="forgot-input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
             />
 
             <button
               className="forgot-btn"
               onClick={resetPassword}
-              disabled={loading}
+              disabled={loading || blockedRef.current}
             >
               {loading ? "Updating..." : "Reset Password"}
             </button>
           </>
         )}
 
-        <button className="back-login" onClick={() => navigate("/")}>
+        <button
+          className="back-login"
+          onClick={() => navigate("/login")}
+          style={{ marginTop: "1.5rem" }}
+        >
           ← Back to Login
         </button>
       </div>
