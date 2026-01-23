@@ -1,6 +1,6 @@
 const authService = require("../services/auth.service");
 const otpService = require("../services/otp.service");
-const { isIpBlocked } = require("../utils/ipBlocker");
+const { isIpBlocked, isEmailBlocked } = require("../utils/ipBlocker");
 
 exports.register = async (req, res) => {
   try {
@@ -42,10 +42,23 @@ exports.verifyOtp = async (req, res) => {
 
 exports.forgotPassword = async (req, res) => {
   try {
-    await authService.forgotPassword(req.body.email);
+    const { email } = req.body;
+    const ip = req.ip;
+
+    if (isIpBlocked(ip) || isEmailBlocked(email)) {
+      return res.status(429).json({
+        code: "BLOCKED",
+        message: "Too many attempts. Try again after 20 minutes",
+      });
+    }
+
+    await authService.forgotPassword(email);
+
     res.json({ message: "OTP sent to your email" });
   } catch (err) {
-    res.status(err.status || 500).json({ message: err.message });
+    res.status(err.status || 500).json({
+      message: err.message,
+    });
   }
 };
 

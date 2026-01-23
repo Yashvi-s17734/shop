@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import toast from "react-hot-toast";
@@ -14,39 +14,48 @@ export default function ResetPassword() {
   const [otpVerified, setOtpVerified] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ SAFE REDIRECT
+  const blockedRef = useRef(false);
+
   useEffect(() => {
     if (!email) {
       navigate("/", { replace: true });
     }
   }, [email, navigate]);
 
-  // STEP 1️⃣ VERIFY OTP
   const verifyOtp = async () => {
-    if (!otp) {
-      toast.error("Enter OTP");
+    if (loading || blockedRef.current) return;
+
+    if (otp.length !== 6) {
+      toast.error("Enter valid OTP");
       return;
     }
 
     try {
       setLoading(true);
 
-      await api.post("/api/auth/verify-reset-otp", {
-        email,
-        otp,
-      });
+      await api.post("/api/auth/verify-reset-otp", { email, otp });
 
       toast.success("OTP verified");
       setOtpVerified(true);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Invalid OTP");
+      const data = err.response?.data;
+
+      if (data?.code === "BLOCKED") {
+        blockedRef.current = true;
+        toast.error("Too many attempts. Try again later");
+        navigate("/forgot-password", { replace: true });
+        return;
+      }
+
+      toast.error(data?.message || "Invalid OTP");
     } finally {
       setLoading(false);
     }
   };
 
-  // STEP 2️⃣ RESET PASSWORD
   const resetPassword = async () => {
+    if (loading || blockedRef.current) return;
+
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
@@ -63,7 +72,15 @@ export default function ResetPassword() {
       toast.success("Password reset successfully");
       navigate("/", { replace: true });
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to reset password");
+      const data = err.response?.data;
+
+      if (data?.code === "BLOCKED") {
+        toast.error("Too many attempts. Try again later");
+        navigate("/forgot-password", { replace: true });
+        return;
+      }
+
+      toast.error(data?.message || "Failed to reset password");
     } finally {
       setLoading(false);
     }
@@ -74,7 +91,6 @@ export default function ResetPassword() {
       <div className="forgot-card">
         <h2 className="forgot-title">Reset Password</h2>
 
-        {/* OTP STEP */}
         {!otpVerified && (
           <>
             <p className="forgot-subtitle">
@@ -86,8 +102,9 @@ export default function ResetPassword() {
               placeholder="Enter 6-digit OTP"
               className="forgot-input"
               value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              maxLength={6}
+              onChange={(e) =>
+                setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
             />
 
             <button
@@ -100,7 +117,6 @@ export default function ResetPassword() {
           </>
         )}
 
-        {/* PASSWORD STEP */}
         {otpVerified && (
           <>
             <p className="forgot-subtitle">Set your new password</p>

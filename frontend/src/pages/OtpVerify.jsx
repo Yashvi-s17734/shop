@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import "../styles/OtpVerify.css";
 
-const OTP_TIME = 300; // 5 minutes
+const OTP_TIME = 300;
 
 export default function OtpVerify() {
   const [otp, setOtp] = useState("");
@@ -17,20 +17,14 @@ export default function OtpVerify() {
   const { setUser } = useAuth();
 
   const email = location.state?.email;
-
-  /* Reset auth state */
   useEffect(() => {
     setUser(null);
     localStorage.clear();
     delete api.defaults.headers.common["Authorization"];
   }, [setUser]);
-
-  /* Protect route */
   useEffect(() => {
     if (!email) navigate("/", { replace: true });
   }, [email, navigate]);
-
-  /* ⏳ TIMER */
   useEffect(() => {
     if (timeLeft <= 0) return;
 
@@ -40,13 +34,10 @@ export default function OtpVerify() {
 
     return () => clearInterval(timer);
   }, [timeLeft]);
-
-  /* 🔥 AUTO SUBMIT WHEN OTP = 6 */
   useEffect(() => {
     if (otp.length === 6 && !verifying) {
       handleVerify();
     }
-    // eslint-disable-next-line
   }, [otp]);
 
   const formatTime = (sec) => {
@@ -73,8 +64,15 @@ export default function OtpVerify() {
       toast.success("Email verified successfully");
       navigate("/home", { replace: true });
     } catch (err) {
-      toast.error(err.response?.data?.message || "Invalid OTP");
-      setOtp("");
+      const data = err.response?.data;
+
+      if (data?.code === "BLOCKED") {
+        toast.error("Too many attempts. Try again after 20 minutes");
+        navigate("/forgot-password", { replace: true });
+        return;
+      }
+
+      toast.error(data?.message || "Invalid OTP");
     } finally {
       setVerifying(false);
     }
@@ -86,7 +84,7 @@ export default function OtpVerify() {
 
       toast.success("OTP resent");
       setOtp("");
-      setTimeLeft(OTP_TIME); // ✅ TIMER RESTART
+      setTimeLeft(OTP_TIME);
     } catch {
       toast.error("Failed to resend OTP");
     }

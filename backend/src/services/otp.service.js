@@ -46,28 +46,32 @@ async function verifyResetOtp(email, otp, ip) {
   const isValid = await bcrypt.compare(otp, record.otp);
 
   if (!isValid) {
-    record.otpAttempts += 1;
-    record.totalAttempts += 1;
+    record.attempts += 1;
 
-    if (record.totalAttempts >= 6) {
-      blockIp(ip, 20);
-      await Otp.deleteMany({ email });
-      throw {
-        status: 429,
-        message: "Too many failed attempts. Try again after 20 minutes",
-      };
-    }
-
-    if (record.otpAttempts === 3) {
+    if (record.attempts === 3) {
       const newOtp = crypto.randomInt(100000, 999999).toString();
       record.otp = await bcrypt.hash(newOtp, 10);
-      record.otpAttempts = 0;
+      record.attempts = 0;
       record.expiresAt = Date.now() + 5 * 60 * 1000;
       await record.save();
       await sendOtpEmail(email, newOtp);
+
       throw {
         status: 400,
-        message: "Too many attempts. New OTP sent to your email",
+        code: "OTP_RESENT",
+        message: "New OTP sent",
+      };
+    }
+
+    if (record.attempts >= 6) {
+      blockIp(ip, 20);
+      blockEmail(email, 20);
+      await Otp.deleteMany({ email });
+
+      throw {
+        status: 429,
+        code: "BLOCKED",
+        message: "Too many attempts. Try again after 20 minutes",
       };
     }
 
@@ -77,7 +81,6 @@ async function verifyResetOtp(email, otp, ip) {
 
   await Otp.deleteMany({ email });
 }
-
 module.exports = {
   sendOtp,
   verifySignupOtp,
