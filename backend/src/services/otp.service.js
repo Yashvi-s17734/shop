@@ -39,7 +39,11 @@ async function verifyResetOtp(email, otp, ip) {
 
   if (!record || record.expiresAt < Date.now()) {
     await Otp.deleteMany({ email });
-    throw { status: 400, message: "OTP expired" };
+    throw {
+      status: 400,
+      code: "OTP_EXPIRED",
+      message: "OTP expired",
+    };
   }
 
   const isValid = await bcrypt.compare(otp, record.otp);
@@ -51,11 +55,10 @@ async function verifyResetOtp(email, otp, ip) {
     record.attempts += 1;
     record.totalAttempts += 1;
 
-    const attemptsLeftThisOtp = Math.max(0, 3 - record.attempts); // Never negative
+    const attemptsLeftThisOtp = Math.max(0, 3 - record.attempts);
 
-    // BLOCK AFTER 10 TOTAL ATTEMPTS
     if (record.totalAttempts >= 10) {
-      blockEmail(email, 30); // 30 min lock
+      blockEmail(email, 30);
       await Otp.deleteMany({ email });
       throw {
         status: 429,
@@ -66,21 +69,23 @@ async function verifyResetOtp(email, otp, ip) {
     }
 
     await record.save();
-
-    // Always send attemptsLeft and code
-    throw {
+    console.log("Throwing error:", {
       status: 400,
       code: "INVALID_OTP",
       attemptsLeft: attemptsLeftThisOtp,
       message: `Invalid OTP. ${attemptsLeftThisOtp} attempt${attemptsLeftThisOtp === 1 ? "" : "s"} left`,
+    });
+
+    throw {
+      status: 400,
+      code: "INVALID_OTP", // ← MUST HAVE THIS
+      attemptsLeft: attemptsLeftThisOtp, // ← MUST SEND THIS
+      message: `Invalid OTP. ${attemptsLeftThisOtp} attempt${attemptsLeftThisOtp === 1 ? "" : "s"} left`,
     };
   }
 
-  // Success
   await Otp.deleteMany({ email });
-  return { message: "OTP verified" };
 }
-
 module.exports = {
   sendOtp,
   verifySignupOtp,

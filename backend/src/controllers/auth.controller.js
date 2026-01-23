@@ -65,13 +65,42 @@ exports.forgotPassword = async (req, res) => {
 exports.verifyResetOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
+
+    // Optional: Add basic input validation
+    if (!email || !otp) {
+      return res.status(400).json({
+        code: "MISSING_FIELDS",
+        message: "Email and OTP are required",
+      });
+    }
+
     await otpService.verifyResetOtp(email, otp, req.ip);
-    res.json({ message: "OTP verified" });
+
+    // Success
+    res.status(200).json({ message: "OTP verified" });
   } catch (err) {
-    res.status(err.status || 500).json(err);
+    // Log the full error for debugging (you can remove this later)
+    console.error("Error in verifyResetOtp:", err);
+
+    const status = err.status || 500;
+
+    // Construct a clean, reliable error response
+    const errorResponse = {
+      code: err.code || "SERVER_ERROR",
+      message: err.message || "An unexpected error occurred",
+      attemptsLeft: err.attemptsLeft !== undefined ? err.attemptsLeft : null,
+      status: status, // optional: include for frontend reference
+    };
+
+    // If there are additional fields in err, merge them safely
+    if (typeof err === "object" && err !== null) {
+      Object.assign(errorResponse, err);
+    }
+
+    // Send the response
+    res.status(status).json(errorResponse);
   }
 };
-
 exports.resetPassword = async (req, res) => {
   try {
     await authService.resetPassword(req.body);
