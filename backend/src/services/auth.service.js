@@ -104,9 +104,41 @@ async function forgotPassword(email) {
 
   await otpService.sendOtp(email);
 }
+const User = require("../models/User");
+const jwt = require("jsonwebtoken");
+const { verifySignupOtp } = require("./otp.service");
+
+async function verifySignupOtpService(email, otp) {
+  await verifySignupOtp(email, otp);
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw { status: 404, message: "User not found" };
+  }
+
+  user.isVerified = true;
+  await user.save();
+
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" },
+  );
+
+  return {
+    token,
+    user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    },
+  };
+}
 
 module.exports = {
   register,
   login,
   forgotPassword,
+  verifySignupOtp: verifySignupOtpService,
 };
