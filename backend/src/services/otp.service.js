@@ -45,8 +45,12 @@ async function verifyResetOtp(email, otp, ip) {
   const isValid = await bcrypt.compare(otp, record.otp);
 
   if (!isValid) {
+    // initialize counters safely
+    record.attempts = record.attempts ?? 0;
+    record.totalAttempts = record.totalAttempts ?? 0;
+
     record.attempts += 1;
-    record.totalAttempts = (record.totalAttempts || 0) + 1;
+    record.totalAttempts += 1;
 
     // 🔥 BLOCK AFTER 6 TOTAL ATTEMPTS
     if (record.totalAttempts >= 6) {
@@ -61,19 +65,22 @@ async function verifyResetOtp(email, otp, ip) {
       };
     }
 
-    // 🔁 RESEND AFTER 3 WRONG ATTEMPTS
+    // 🔁 RESEND AFTER 3 ATTEMPTS (BEFORE THROW)
     if (record.attempts === 3) {
       const newOtp = crypto.randomInt(100000, 999999).toString();
+
       record.otp = await bcrypt.hash(newOtp, 10);
       record.attempts = 0;
       record.expiresAt = Date.now() + 5 * 60 * 1000;
-      await record.save();
+
+      await record.save(); // 🔥 MUST SAVE BEFORE EMAIL
+
       await sendOtpEmail(email, newOtp);
 
       throw {
         status: 400,
         code: "OTP_RESENT",
-        message: "New OTP sent",
+        message: "New OTP sent to your email",
       };
     }
 

@@ -40,6 +40,11 @@ export default function ResetPassword() {
     } catch (err) {
       const data = err.response?.data;
 
+      if (data?.code === "OTP_RESENT") {
+        toast.success("New OTP sent to your email");
+        setOtp("");
+        return;
+      }
       if (data?.code === "BLOCKED") {
         blockedRef.current = true;
         toast.error("Too many attempts. Try again later");
