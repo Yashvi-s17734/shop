@@ -56,37 +56,33 @@ export default function ResetPassword() {
       if (data.code === "BLOCKED") {
         blockedRef.current = true;
         toast.error(
-          "Too many failed attempts. You are blocked for 20 minutes.",
+          data.message || "Too many attempts. You are blocked for 15 minutes.",
         );
         setTimeout(() => navigate("/forgot-password", { replace: true }), 2000);
         return;
       }
 
-      // Inside verifyOtp catch block, replace the INVALID_OTP handling with:
-
-      if (data.code === "INVALID_OTP") {
-        const left = data.attemptsLeft ?? attemptsLeft - 1;
-        setAttemptsLeft(left); // Always update state with backend value
-        toast.error(
-          data.message ||
-            `Invalid OTP. ${left} attempt${left === 1 ? "" : "s"} left`,
-        );
-
-        // Show resend button when attempts are exhausted for this OTP
-        if (left <= 0) {
-          setShowResend(true);
-          setOtp(""); // Optional: clear input
-        }
+      if (data.code === "OTP_ATTEMPTS_EXCEEDED") {
+        setShowResend(true);
+        setAttemptsLeft(0);
+        setOtp("");
+        toast.error(data.message);
         return;
       }
 
-      if (data.message?.toLowerCase().includes("expired")) {
-        toast.error("OTP has expired. Please resend a new one.");
+      if (data.code === "INVALID_OTP") {
+        setAttemptsLeft(data.attemptsLeft);
+        toast.error(data.message);
+        return;
+      }
+
+      if (data.code === "OTP_EXPIRED") {
+        toast.error("OTP expired. Please resend OTP.");
         setShowResend(true);
         return;
       }
 
-      toast.error(data.message || "Something went wrong. Please try again.");
+      toast.error(data.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }

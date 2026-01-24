@@ -8,14 +8,40 @@ async function sendOtp(email) {
   const otp = crypto.randomInt(100000, 999999).toString();
   const hashedOtp = await bcrypt.hash(otp, 10);
 
-  await Otp.deleteMany({ email });
+  const existing = await Otp.findOne({ email });
 
-  await Otp.create({
-    email,
-    otp: hashedOtp,
-    attempts: 0,
-    expiresAt: Date.now() + 5 * 60 * 1000,
-  });
+  if (existing) {
+    if (existing.resendCount >= 1) {
+      throw {
+        status: 429,
+        code: "RESEND_LIMIT",
+        message: "OTP resend limit reached",
+      };
+    }
+
+    await Otp.updateOne(
+      { email },
+      {
+        $set: {
+          otp: hashedOtp,
+          otpAttempts: 0,
+          expiresAt: Date.now() + 5 * 60 * 1000,
+        },
+        $inc: {
+          resendCount: 1,
+          otpCycles: 1, // optional if you use cycles
+        },
+      },
+    );
+  } else {
+    await Otp.create({
+      email,
+      otp: hashedOtp,
+      otpAttempts: 0,
+      resendCount: 0,
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
+  }
 
   await sendOtpEmail(email, otp);
 }
@@ -39,53 +65,54 @@ async function verifyResetOtp(email, otp, ip) {
 
   if (!record || record.expiresAt < Date.now()) {
     await Otp.deleteMany({ email });
-    throw {
-      status: 400,
-      code: "OTP_EXPIRED",
-      message: "OTP expired",
-    };
+    throw { status: 400, code: "OTP_EXPIRED", message: "OTP expired" };
   }
 
   const isValid = await bcrypt.compare(otp, record.otp);
 
   if (!isValid) {
-    record.attempts = record.attempts ?? 0;
-    record.totalAttempts = record.totalAttempts ?? 0;
+    record.otpAttempts = Number(record.otpAttempts || 0) + 1;
+    await record.save();
 
-    record.attempts += 1;
-    record.totalAttempts += 1;
+    const attemptsLeft = Math.max(0, 3 - record.otpAttempts);
+    console.log("record", record);
+    if (record.otpAttempts >= 3) {
+      if (record.otpCycles >= 2) {
+        // blockEmail(email, 15);
+        // blockIp(ip, 15);
+        console.log("is is blocked");
+        await Otp.deleteMany({ email });
 
-    const attemptsLeftThisOtp = Math.max(0, 3 - record.attempts);
+        throw {
+          status: 429,
+          code: "BLOCKED",
+          message: "Too many attempts. Blocked for 15 minutes.",
+        };
+      }
 
-    if (record.totalAttempts >= 10) {
-      blockEmail(email, 30);
-      await Otp.deleteMany({ email });
+      // Lock OTP and force resend
+      record.expiresAt = Date.now();
+      await record.save();
+
       throw {
-        status: 429,
-        code: "BLOCKED",
-        message:
-          "Too many attempts. Password reset is temporarily locked for this account. Try again in 30 minutes.",
+        status: 400,
+        code: "OTP_ATTEMPTS_EXCEEDED",
+        canResend: true,
+        message: "OTP attempts exceeded. Please resend OTP.",
       };
     }
 
-    await record.save();
-    console.log("Throwing error:", {
-      status: 400,
-      code: "INVALID_OTP",
-      attemptsLeft: attemptsLeftThisOtp,
-      message: `Invalid OTP. ${attemptsLeftThisOtp} attempt${attemptsLeftThisOtp === 1 ? "" : "s"} left`,
-    });
-
     throw {
       status: 400,
-      code: "INVALID_OTP", // ← MUST HAVE THIS
-      attemptsLeft: attemptsLeftThisOtp, // ← MUST SEND THIS
-      message: `Invalid OTP. ${attemptsLeftThisOtp} attempt${attemptsLeftThisOtp === 1 ? "" : "s"} left`,
+      code: "INVALID_OTP",
+      attemptsLeft,
+      message: `Invalid OTP. ${attemptsLeft} attempts left`,
     };
   }
 
   await Otp.deleteMany({ email });
 }
+
 module.exports = {
   sendOtp,
   verifySignupOtp,
