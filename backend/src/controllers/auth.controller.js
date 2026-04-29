@@ -41,18 +41,33 @@ exports.verifyOtp = async (req, res) => {
 };
 
 exports.forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  const ip = req.ip;
+  try {
+    const { email } = req.body;
+    const ip = req.ip;
 
-  if (isEmailBlocked(email) || isIpBlocked(ip)) {
-    return res.status(429).json({
-      code: "BLOCKED",
-      message: "Too many attempts. Try again after 15 minutes",
+    if (!email) {
+      return res.status(400).json({
+        code: "MISSING_EMAIL",
+        message: "Email is required",
+      });
+    }
+
+    if (isEmailBlocked(email) || isIpBlocked(ip)) {
+      return res.status(429).json({
+        code: "BLOCKED",
+        message: "Too many attempts. Try again after 15 minutes",
+      });
+    }
+
+    // Ensures account exists and is eligible for password reset.
+    await authService.forgotPassword(email);
+    res.json({ message: "OTP sent to your email" });
+  } catch (err) {
+    res.status(err.status || 500).json({
+      code: err.code || "SERVER_ERROR",
+      message: err.message || "Something went wrong",
     });
   }
-
-  await otpService.sendOtp(email);
-  res.json({ message: "OTP sent to your email" });
 };
 
 exports.verifyResetOtp = async (req, res) => {

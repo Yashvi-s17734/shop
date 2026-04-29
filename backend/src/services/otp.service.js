@@ -29,7 +29,7 @@ async function sendOtp(email) {
         },
         $inc: {
           resendCount: 1,
-          otpCycles: 1, // optional if you use cycles
+          otpCycles: 1, 
         },
       },
     );
@@ -78,8 +78,8 @@ async function verifyResetOtp(email, otp, ip) {
     console.log("record", record);
     if (record.otpAttempts >= 3) {
       if (record.otpCycles >= 2) {
-        // blockEmail(email, 15);
-        // blockIp(ip, 15);
+        blockEmail(email, 15);
+        blockIp(ip, 15);
         console.log("is is blocked");
         await Otp.deleteMany({ email });
 

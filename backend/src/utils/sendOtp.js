@@ -1,13 +1,47 @@
-const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const nodemailer = require("nodemailer");
+
+const createTransporter = () => {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT || 587);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!host || !user || !pass) {
+    throw {
+      status: 503,
+      code: "EMAIL_NOT_CONFIGURED",
+      message:
+        "Email is not configured on this server (missing SMTP_HOST, SMTP_USER, or SMTP_PASS).",
+    };
+  }
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: { user, pass },
+  });
+};
 
 const sendOtpEmail = async (email, otp) => {
-  await sgMail.send({
-    to: email,
-    from: process.env.FROM_EMAIL,
-    subject: "Verify Your Email | Jayendra Vasan Bhandar",
-    text: `Your OTP is ${otp}. It is valid for 5 minutes.`,
-    html: `
+  const from = process.env.FROM_EMAIL;
+  if (!from) {
+    throw {
+      status: 503,
+      code: "EMAIL_NOT_CONFIGURED",
+      message:
+        "Email is not configured on this server (missing FROM_EMAIL).",
+    };
+  }
+  const transporter = createTransporter();
+
+  try {
+    await transporter.sendMail({
+      to: email,
+      from,
+      subject: "Verify Your Email | Jayendra Vasan Bhandar",
+      text: `Your OTP is ${otp}. It is valid for 5 minutes.`,
+      html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -86,7 +120,17 @@ const sendOtpEmail = async (email, otp) => {
 </body>
 </html>
     `,
-  });
+    });
+  } catch (err) {
+    const smtpMsg = err.message || "Failed to send email";
+    console.error("SMTP mail error:", smtpMsg);
+    throw {
+      status: 503,
+      code: "EMAIL_SEND_FAILED",
+      message:
+        "We could not send the email right now. Please try again in a few minutes.",
+    };
+  }
 };
 
 module.exports = sendOtpEmail;
